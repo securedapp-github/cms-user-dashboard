@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track DSR Request - Secure CMS</title>
+    <meta name="description" content="Track your Data Subject Right Request">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="consent-style.css">
+</head>
+<body>
+
+<div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+        <!-- Sidebar Navigation (Same as dsr-raise) -->
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <div class="sidebar-title">Secure CMS</div>
+        </div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Overview
+            </a>
+            <a href="my-consents.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                My Consents
+            </a>
+            <a href="dsr-raise.html" class="nav-item active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                DSR Management
+            </a>
+            <a href="grievance-raise.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path></svg>
+                Grievance System
+            </a>
+            <a href="feedback.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                Feedback
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="profile.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Profile & Settings
+            </a>
+            <a href="#" class="nav-item" style="color: var(--danger);" onclick="logout()">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header" style="margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button class="menu-toggle" id="btn-menu-toggle">Menu</button>
+                <a href="dsr-raise.html" class="btn btn-outline btn-sm" style="padding: 0.25rem 0.5rem; border:none;">← Back</a>
+            </div>
+        </header>
+
+        <div class="panel" style="max-width: 1000px; margin-bottom: 2rem;">
+            <div class="panel-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; width: 100%; gap: 1rem;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                            <h2 style="margin:0;">Request #DSR-4092</h2>
+                            <span class="badge badge-active" style="background:#dbeafe; color:#1e40af;">In Progress</span>
+                        </div>
+                        <p style="margin:0; font-weight: 500;">Right to Access Data / Portability</p>
+                        <p style="margin:0; font-size: 0.875rem; color: var(--text-muted);">Tenant: Global Trust Bank</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sla-banner mt-4">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.875rem;">SLA Status</div>
+                        <div style="font-size: 0.75rem;">Mandated by DPDP Act 2023</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--success); display:flex; align-items:center; gap:0.5rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            14 Days Remaining
+                        </div>
+                        <div style="font-size: 0.75rem;">Due date: April 15, 2026</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stepper Flow -->
+            <div class="stepper-container mt-4">
+                
+                <!-- Step 1: Created -->
+                <div class="step step-completed">
+                    <div class="step-indicator">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <div class="step-label">
+                        <div class="step-title">Request Created</div>
+                        <div class="step-date">April 1, 10:00 AM</div>
+                    </div>
+                </div>
+
+                <!-- Spacer Line -->
+                <div class="step-line line-completed"></div>
+
+                <!-- Step 2: Verification -->
+                <div class="step step-completed">
+                    <div class="step-indicator">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <div class="step-label">
+                        <div class="step-title">Identity Verified</div>
+                        <div class="step-date">April 1, 10:45 AM</div>
+                    </div>
+                </div>
+
+                <div class="step-line line-completed"></div>
+
+                <!-- Step 3: Approved -->
+                <div class="step step-active">
+                    <div class="step-indicator">3</div>
+                    <div class="step-label">
+                        <div class="step-title">Approved by Fiduciary</div>
+                        <div class="step-date">April 2, 09:12 AM</div>
+                    </div>
+                </div>
+
+                <div class="step-line"></div>
+
+                <!-- Step 4: Executing -->
+                <div class="step step-pending">
+                    <div class="step-indicator">4</div>
+                    <div class="step-label">
+                        <div class="step-title">Data Compilation</div>
+                        <div class="step-date">Pending</div>
+                    </div>
+                </div>
+
+                <div class="step-line"></div>
+
+                <!-- Step 5: Completed -->
+                <div class="step step-pending">
+                    <div class="step-indicator">5</div>
+                    <div class="step-label">
+                        <div class="step-title">Completed</div>
+                        <div class="step-date">Pending</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consent Verification → SecureDApp CMS</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    pre { background: #f4f4f4; padding: 1rem; overflow: auto; font-size: 12px; }
+    .btn-wrap { margin: 1rem 0; }
+    h1 { font-size: 1.25rem; }
+    input, button { font-size: 14px; padding: 8px; }
+    input { width: 180px; margin-right: 8px; }
+    button { cursor: pointer; }
+    .section { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h1>Verify OTP to provide consent</h1>
+  <p>1. Click "Send OTP" to request a one-time password.</p>
+  <div class="btn-wrap">
+    <button id="sendBtn" type="button">Send OTP</button>
+  </div>
+  
+  <div class="section">
+    <p>2. Enter the 6-digit code you received.</p>
+    <div class="btn-wrap">
+      <input id="otp" placeholder="Enter 6-digit OTP" maxlength="6" />
+      <button id="verifyBtn" type="button">Verify OTP & Consent</button>
+    </div>
+  </div>
+
+  <h2>Status</h2>
+  <pre id="result">Waiting for action...</pre>
+
+  <script>
+    // Token is injected by the backend controller
+    const token = __INJECTED_TOKEN__;
+    const resultEl = document.getElementById('result');
+    const sendBtn = document.getElementById('sendBtn');
+    const verifyBtn = document.getElementById('verifyBtn');
+
+    function setResult(text) { 
+      resultEl.textContent = text; 
+    }
+
+    sendBtn.onclick = async () => {
+      setResult('Sending OTP...');
+      sendBtn.disabled = true;
+      try {
+        const res = await fetch('/public/consent/redirect/' + encodeURIComponent(token) + '/send-otp', { 
+          method: 'POST' 
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
+        
+        setResult(data.dev_otp ? ('OTP sent successfully. Dev OTP: ' + data.dev_otp) : 'OTP sent successfully. Please check your messages.');
+      } catch (e) {
+        setResult('Error: ' + e.message);
+      } finally {
+        sendBtn.disabled = false;
+      }
+    };
+
+    verifyBtn.onclick = async () => {
+      const otp = (document.getElementById('otp').value || '').trim();
+      if (!otp) {
+        setResult('Error: Please enter the OTP');
+        return;
+      }
+      
+      setResult('Verifying OTP...');
+      verifyBtn.disabled = true;
+      try {
+        const res = await fetch('/public/consent/redirect/' + encodeURIComponent(token) + '/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ otp }),
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+           throw new Error(data.error || 'Failed to verify OTP');
+        }
+        
+        if (data.already_consented) {
+          setResult('Already consented. Consent ID: ' + (data.consentId || 'Unknown'));
+        } else {
+          setResult('Consent granted successfully. Consent ID: ' + (data.consentId || 'Unknown'));
+        }
+      } catch (e) {
+        setResult('Error: ' + e.message);
+      } finally {
+        verifyBtn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>

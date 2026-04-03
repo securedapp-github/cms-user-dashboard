@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Consents - Secure CMS</title>
+    <meta name="description" content="View and Manage your Consents">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <div class="sidebar-title">Secure CMS</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Overview
+            </a>
+            <a href="my-consents.html" class="nav-item active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                My Consents
+            </a>
+            <a href="dsr-raise.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                DSR Management
+            </a>
+            <a href="grievance-raise.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                Grievance System
+            </a>
+            <a href="feedback.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                Feedback
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="profile.html" class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Profile & Settings
+            </a>
+            <a href="#" class="nav-item" style="color: var(--danger);" onclick="logout()">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="page-header">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button class="menu-toggle" id="btn-menu-toggle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <h2>My Consents</h2>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-info text-right" style="display: none; @media(min-width: 640px) {display: block;}">
+                    <div class="name">Rhea Sharma</div>
+                    <div class="role">Verified User</div>
+                </div>
+                <div class="avatar" style="background-image: url('https://ui-avatars.com/api/?name=Rhea+Sharma&background=000&color=fff');"></div>
+            </div>
+        </header>
+
+        <!-- Filters Section -->
+        <div class="panel mb-4 filters-panel">
+            <div class="form-group mb-0" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="form-label">Tenant (Bank name)</label>
+                    <select class="form-control" id="filter-tenant">
+                        <option value="all">All Banks/Tenants</option>
+                        <option value="Global Trust Bank">Global Trust Bank</option>
+                        <option value="FinTech App XYZ">FinTech App XYZ</option>
+                        <option value="ShopEasy Commerce">ShopEasy Commerce</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="form-label">App</label>
+                    <select class="form-control" id="filter-app">
+                        <option value="all">All Platforms (Web/Mobile)</option>
+                        <option value="Mobile App">Mobile App</option>
+                        <option value="Website">Website</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" id="filter-status">
+                        <option value="all">All Statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Revoked">Revoked</option>
+                        <option value="Expired">Expired</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div class="panel">
+            <div class="list-group" id="consents-list">
+                <!-- Item 1 -->
+                <a href="consent-details.html" class="list-item consent-card">
+                    <div class="item-icon" style="background-color: #fce7f3; color: #be185d;">
+                        GTB
+                    </div>
+                    <div class="item-content">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="item-title">Personal Loan Processing</div>
+                            <span class="badge badge-active">Active</span>
+                        </div>
+                        <div class="item-desc">Global Trust Bank • Mobile App</div>
+                        <div class="item-meta mt-2" style="display:flex; justify-content:space-between;">
+                            <span>Purpose: Financial assessment and regular reporting</span>
+                            <span>Updated: Today, 10:42 AM</span>
+                        </div>
+                    </div>
+                </a>
+                
+                <!-- Item 2 -->
+                <a href="consent-details.html" class="list-item consent-card">
+                    <div class="item-icon" style="background-color: #dbeafe; color: #1d4ed8;">
+                        FT
+                    </div>
+                    <div class="item-content">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="item-title">Marketing & Partner Offers</div>
+                            <span class="badge badge-pending">Expiring Soon</span>
+                        </div>
+                        <div class="item-desc">FinTech App XYZ • Website</div>
+                        <div class="item-meta mt-2" style="display:flex; justify-content:space-between;">
+                            <span>Purpose: Sharing usage metrics for targeted ads</span>
+                            <span>Updated: Oct 20, 2025</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Item 3 -->
+                <a href="consent-details.html" class="list-item consent-card">
+                    <div class="item-icon" style="background-color: #f3f4f6; color: #374151;">
+                        SEC
+                    </div>
+                    <div class="item-content">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="item-title">Purchase History Tracking</div>
+                            <span class="badge badge-expired">Revoked</span>
+                        </div>
+                        <div class="item-desc">ShopEasy Commerce • Mobile App</div>
+                        <div class="item-meta mt-2" style="display:flex; justify-content:space-between;">
+                            <span>Purpose: Product recommendations based on cart data</span>
+                            <span>Updated: Oct 01, 2025</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
