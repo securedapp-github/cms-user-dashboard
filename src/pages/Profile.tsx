@@ -69,7 +69,7 @@ function ReadonlyField({
 }
 
 export default function Profile() {
-  const { identifier, user } = useAuthStore();
+  const { email: storeEmail, phone_number: storePhone, user } = useAuthStore();
   const { addToast } = useToastStore();
   const [isSaving, setIsSaving] = useState(false);
   const [language, setLanguage] = useState('en');
@@ -115,12 +115,12 @@ export default function Profile() {
               </div>
               <div className="px-5 pb-5 -mt-8 relative z-10">
                 <div className="w-[56px] h-[56px] rounded-[16px] bg-gradient-to-br from-[#4f46e5] to-[#6366f1] shadow-[0_6px_20px_rgba(79,70,229,0.25)] flex items-center justify-center mb-3 border-[3px] border-white text-white font-semibold text-[18px]">
-                  {user ? `${user.firstName?.[0] || 'R'}${user.lastName?.[0] || 'S'}`.toUpperCase() : 'RS'}
+                  {user?.email?.[0].toUpperCase() || 'P'}
                 </div>
                 <h3 className="font-bold text-[#0f172a] text-lg uppercase tracking-tight">
-                  {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Rhea Sharma'}
+                  {user?.email?.split('@')[0] || 'Principal'}
                 </h3>
-                <p className="text-sm text-[#64748b] font-medium">Platform User</p>
+                <p className="text-sm text-[#64748b] font-medium">Verified Account</p>
                 <div className="flex items-center gap-1.5 mt-2.5">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                     <ShieldCheck size={12} className="text-emerald-500" />
@@ -142,18 +142,19 @@ export default function Profile() {
               </div>
               <div className="p-5 space-y-4">
                 <ReadonlyField
-                  label="Full Name"
-                  value={user ? `${user.firstName} ${user.lastName}` : 'Rhea Sharma'}
-                  icon={<UserCircle size={16} />}
+                  label="Principal ID"
+                  value={user?.principal_id || '3fa85f64-...'}
+                  icon={<ShieldCheck size={16} />}
+                  mono
                 />
                 <ReadonlyField
-                  label="Email Address"
-                  value={user?.email || identifier || 'rhea.sharma@example.com'}
+                  label="Verified Email"
+                  value={user?.email || storeEmail || 'user@example.com'}
                   icon={<Mail size={16} />}
                 />
                 <ReadonlyField
-                  label="Registered Mobile"
-                  value={user?.phone || identifier || '+91 98765 43210'}
+                  label="Verified Mobile"
+                  value={user?.phone_number || storePhone || '+91 98765 43210'}
                   icon={<Phone size={16} />}
                   mono
                 />

@@ -35,7 +35,7 @@ export default function Dashboard() {
     fetchData();
   }, [setUser, setSummary, setConsents]);
 
-  const userName = user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Alex';
+  const userName = user?.email ? user.email.split('@')[0] : 'User';
 
   const containerVars = {
     hidden: { opacity: 0 },

@@ -12,13 +12,12 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const { addToast } = useToastStore();
   const navigate = useNavigate();
   
-  // Calculate initials
-  const initials = user 
-    ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() || 'JD'
-    : 'JD';
-  const fullName = user 
-    ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Alex Doe'
-    : 'Alex Doe';
+  // Calculate initials from email or fallback
+  const initials = user?.email
+    ? user.email.split('@')[0].slice(0, 2).toUpperCase()
+    : 'US';
+  
+  const displayName = user?.email || 'Authenticated User';
 
   const handleLogout = () => {
     logout();
@@ -81,8 +80,8 @@ export function Header({ onMenuToggle }: HeaderProps) {
               <span className="text-xs font-bold">{initials}</span>
             </div>
             <div className="hidden md:flex flex-col items-start text-left">
-              <span className="text-[13px] font-semibold text-[#0f172a] leading-tight">{fullName}</span>
-              <span className="text-[11px] text-[#94a3b8]"> User</span>
+              <span className="text-[13px] font-semibold text-[#0f172a] leading-tight truncate max-w-[120px]">{displayName}</span>
+              <span className="text-[11px] text-[#94a3b8]">Principal</span>
             </div>
             <ChevronDown size={13} className="hidden md:block text-[#94a3b8] group-hover:text-[#0f172a] transition-colors" />
           </button>

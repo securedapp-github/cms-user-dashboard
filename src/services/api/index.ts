@@ -1,5 +1,9 @@
+const BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export const api = async (url: string, options: RequestInit = {}) => {
   const token = localStorage.getItem("user_token");
+  
+  const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
 
   // Merge headers appropriately
   const headers: HeadersInit = {
@@ -11,7 +15,7 @@ export const api = async (url: string, options: RequestInit = {}) => {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, {
+  const response = await fetch(fullUrl, {
     ...options,
     headers,
   });

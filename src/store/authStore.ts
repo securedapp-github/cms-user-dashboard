@@ -1,13 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
+export interface User {
+  principal_id: string;
   email: string;
-  phone: string;
-  role: string;
+  phone_number: string;
 }
 
 interface SignupData {
@@ -20,10 +17,11 @@ interface SignupData {
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  identifier: string | null;
+  email: string | null;
+  phone_number: string | null;
   signupData: SignupData | null;
-  setAuthenticated: (user: User) => void;
-  setIdentifier: (id: string) => void;
+  setAuthenticated: (user: User | null) => void;
+  setCredentials: (email: string, phone: string) => void;
   setSignupData: (data: SignupData) => void;
   logout: () => void;
 }
@@ -33,13 +31,14 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       user: null,
-      identifier: null,
+      email: null,
+      phone_number: null,
       signupData: null,
-      setAuthenticated: (user) => set({ isAuthenticated: true, user }),
-      setIdentifier: (id) => set({ identifier: id }),
+      setAuthenticated: (user) => set({ isAuthenticated: !!user, user }),
+      setCredentials: (email, phone_number) => set({ email, phone_number }),
       setSignupData: (data) => set({ signupData: data }),
       logout: () => {
-        set({ isAuthenticated: false, user: null, identifier: null, signupData: null });
+        set({ isAuthenticated: false, user: null, email: null, phone_number: null, signupData: null });
         localStorage.removeItem('secure-cms-auth');
       },
     }),

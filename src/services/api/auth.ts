@@ -14,11 +14,11 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const authApi = {
   // Step 1: Request OTP
-  requestOtp: async (identifier: string): Promise<boolean> => {
+  requestOtp: async (email: string, phone: string): Promise<boolean> => {
     await sleep(800);
     // Simulate valid identifiers
-    if (!identifier || identifier.length < 5) {
-      throw new Error('Please enter a valid email or phone number.');
+    if (!email || !phone || email.length < 5 || phone.length < 5) {
+      throw new Error('Please enter both a valid email and phone number.');
     }
     return true;
   },

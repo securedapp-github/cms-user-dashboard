@@ -14,7 +14,8 @@ import { Button } from '../../components/ui/Button';
 import logo from '../../assets/STRIGHT.png';
 
 const requestOtpSchema = z.object({
-  identifier: z.string().min(5, 'Please enter a valid email or phone number'),
+  email: z.string().email('Please enter a valid email address'),
+  phone_number: z.string().min(10, 'Please enter a valid phone number'),
 });
 
 type RequestOtpForm = z.infer<typeof requestOtpSchema>;
@@ -26,7 +27,7 @@ export default function Login() {
   const [secondsLeft, setSecondsLeft] = useState(30);
   
   const navigate = useNavigate();
-  const { setAuthenticated, setIdentifier } = useAuthStore();
+  const { setAuthenticated, setCredentials, email: storeEmail, phone_number: storePhone } = useAuthStore();
   const { addToast } = useToastStore();
   
   const otpRefs = [
@@ -50,8 +51,8 @@ export default function Login() {
   const onRequestSubmit = async (data: RequestOtpForm) => {
     setIsLoading(true);
     try {
-      await authApi.requestOtp(data.identifier);
-      setIdentifier(data.identifier);
+      await authApi.requestOtp(data.email, data.phone_number);
+      setCredentials(data.email, data.phone_number);
       addToast('OTP sent securely to your device', 'success');
       setStep(2);
       setSecondsLeft(30);
@@ -97,40 +98,29 @@ export default function Login() {
     if (otpValue.length < 4) return;
     setIsLoading(true);
     try {
-      const identifier = useAuthStore.getState().identifier || 'test_user@example.com';
-      // Pseudo OTP verification
-      await authApi.verifyOtp(identifier, otpValue);
+      const email = storeEmail || 'user@example.com';
+      const phone_number = storePhone || '+1234567890';
       
-      const email = identifier.includes('@') ? identifier : 'user@example.com';
-      const phone_number = identifier.includes('@') ? '+1234567890' : identifier;
+      // Pseudo OTP verification
+      await authApi.verifyOtp(email, otpValue);
 
       // Actual backend session login
       const sessionRes = await userApi.loginUser({ email, phone_number });
       
       if (sessionRes && sessionRes.token) {
+        // Store the JWT for subsequent API requests
         localStorage.setItem('user_token', sessionRes.token);
         
-        const resUser = sessionRes.user || { name: 'Alex Doe' };
-        // If we have signup data, override the profile with it
-        const signupData = useAuthStore.getState().signupData;
+        // Fetch the actual principal profile from the backend
+        const userProfile = await userApi.getUser();
         
-        const finalUser = signupData ? {
-          ...resUser,
-          firstName: signupData.firstName,
-          lastName: signupData.lastName,
-          email: signupData.email,
-          phone: signupData.phone,
-        } : {
-          ...resUser,
-          firstName: resUser.name?.split(' ')[0] || 'Alex',
-          lastName: resUser.name?.split(' ')[1] || 'Doe',
-          email,
-          phone: phone_number,
-        };
-
-        setAuthenticated(finalUser as any);
-        addToast(`Welcome back, ${finalUser.firstName}!`, 'success');
-        navigate('/');
+        if (userProfile && (userProfile.principal_id || userProfile.id)) {
+          setAuthenticated(userProfile);
+          addToast(`Welcome back!`, 'success');
+          navigate('/');
+        } else {
+          throw new Error("Could not retrieve user profile");
+        }
       } else {
         throw new Error("Failed to authenticate with server");
       }
@@ -147,12 +137,13 @@ export default function Login() {
     if (secondsLeft > 0) return;
     setIsLoading(true);
     try {
-      const id = useAuthStore.getState().identifier || '';
-      await authApi.requestOtp(id);
-      addToast('OTP resent successfully', 'success');
-      setSecondsLeft(30);
-      setOtp(['', '', '', '']);
-      otpRefs[0].current?.focus();
+      if (storeEmail && storePhone) {
+        await authApi.requestOtp(storeEmail, storePhone);
+        addToast('OTP resent successfully', 'success');
+        setSecondsLeft(30);
+        setOtp(['', '', '', '']);
+        otpRefs[0].current?.focus();
+      }
     } catch {
       addToast('Failed to resend OTP', 'error');
     } finally {
@@ -207,16 +198,24 @@ export default function Login() {
                 >
                   <div className="mb-5">
                     <h2 className="text-lg font-semibold text-[#0f172a] mb-1">Welcome back</h2>
-                    <p className="text-sm text-[#64748b]">Enter your email or phone to receive a one-time code.</p>
+                    <p className="text-sm text-[#64748b]">Enter your credentials to receive a one-time code.</p>
                   </div>
                   <form onSubmit={handleSubmit(onRequestSubmit)} className="flex flex-col gap-4">
                     <Input
-                      label="Email or Phone Number"
-                      placeholder="name@domain.com or +91 98765 43210"
-                      {...register('identifier')}
-                      error={errors.identifier?.message}
+                      label="Email Address"
+                      placeholder="name@domain.com"
+                      {...register('email')}
+                      error={errors.email?.message}
                       disabled={isLoading}
-                      autoComplete="username"
+                      autoComplete="email"
+                    />
+                    <Input
+                      label="Phone Number"
+                      placeholder="+91 98765 43210"
+                      {...register('phone_number')}
+                      error={errors.phone_number?.message}
+                      disabled={isLoading}
+                      autoComplete="tel"
                     />
                     <Button type="submit" className="w-full mt-1 group" isLoading={isLoading} size="md">
                       {!isLoading && (

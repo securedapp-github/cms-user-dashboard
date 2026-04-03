@@ -4,9 +4,14 @@ export const userApi = {
   // 1. Session Login
   loginUser: async (payload: { email: string; phone_number: string }) => {
     // The backend POST /user/auth/session returns { token, principal_id }
+    // Sending variations of phone for compatibility as per API screenshot
     return await api('/user/auth/session', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        phoneNumber: payload.phone_number,
+        phone: payload.phone_number,
+      }),
     });
   },
 
