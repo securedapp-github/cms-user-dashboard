@@ -22,7 +22,7 @@ type RequestOtpForm = z.infer<typeof requestOtpSchema>;
 
 export default function Login() {
   const [step, setStep] = useState<1 | 2>(1);
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(30);
   
@@ -31,6 +31,8 @@ export default function Login() {
   const { addToast } = useToastStore();
   
   const otpRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -66,13 +68,13 @@ export default function Login() {
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) {
-      const pasted = value.replace(/\D/g, '').slice(0, 4).split('');
+      const pasted = value.replace(/\D/g, '').slice(0, 6).split('');
       const newOtp = [...otp];
       for (let i = 0; i < pasted.length; i++) {
-        if (index + i < 4) newOtp[index + i] = pasted[i];
+        if (index + i < 6) newOtp[index + i] = pasted[i];
       }
       setOtp(newOtp);
-      const nextFocus = Math.min(index + pasted.length, 3);
+      const nextFocus = Math.min(index + pasted.length, 5);
       otpRefs[nextFocus].current?.focus();
       return;
     }
@@ -80,7 +82,7 @@ export default function Login() {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    if (value && index < 3) {
+    if (value && index < 5) {
       otpRefs[index + 1].current?.focus();
     }
   };
@@ -95,14 +97,14 @@ export default function Login() {
 
   const handleVerify = async () => {
     const otpValue = otp.join('');
-    if (otpValue.length < 4) return;
+    if (otpValue.length < 6) return;
     setIsLoading(true);
     try {
       const email = storeEmail || 'user@example.com';
       const phone_number = storePhone || '+1234567890';
       
-      // Pseudo OTP verification
-      await authApi.verifyOtp(email, otpValue);
+      // Real backend OTP verification
+      await authApi.verifyOtp(email, phone_number, otpValue);
 
       // Actual backend session login
       const sessionRes = await userApi.loginUser({ email, phone_number });
@@ -126,7 +128,7 @@ export default function Login() {
       }
     } catch (err: any) {
       addToast(err.message || 'Verification Failed', 'error');
-      setOtp(['', '', '', '']);
+      setOtp(['', '', '', '', '', '']);
       otpRefs[0].current?.focus();
     } finally {
       setIsLoading(false);
@@ -141,7 +143,7 @@ export default function Login() {
         await authApi.requestOtp(storeEmail, storePhone);
         addToast('OTP resent successfully', 'success');
         setSecondsLeft(30);
-        setOtp(['', '', '', '']);
+        setOtp(['', '', '', '', '', '']);
         otpRefs[0].current?.focus();
       }
     } catch {
@@ -257,7 +259,7 @@ export default function Login() {
                     <Lock size={18} className="text-[#4f46e5]" />
                   </div>
                   <h2 className="text-base font-semibold text-[#0f172a] mb-1">Check your inbox</h2>
-                  <p className="text-sm text-[#64748b] mb-6 text-center">Enter the 4-digit code we sent to your device.</p>
+                  <p className="text-sm text-[#64748b] mb-6 text-center">Enter the 6-digit code we sent to your device.</p>
 
                   {/* OTP inputs */}
                   <div className="flex gap-3 justify-center mb-6">
@@ -294,27 +296,21 @@ export default function Login() {
                     Verify & Sign In
                   </Button>
 
-                  <div className="text-center text-sm">
-                    {secondsLeft > 0 ? (
-                      <span className="text-[#64748b]">
-                        Resend code in <span className="font-semibold text-[#0f172a] tabular-nums">{secondsLeft}s</span>
-                      </span>
-                    ) : (
-                      <button
-                        onClick={handleResend}
-                        disabled={isLoading}
-                        className="font-semibold text-[#4f46e5] hover:text-[#4338ca] hover:underline focus:outline-none transition-colors"
-                      >
-                        Didn't receive a code? Resend
-                      </button>
-                    )}
-                    <div className="mt-4 pt-4 border-t border-[#f1f5f9]">
-                      <p className="text-xs text-[#94a3b8]">
-                        Demo? Use OTP{' '}
-                        <span className="font-mono bg-[#f1f5f9] text-[#4f46e5] px-2 py-0.5 rounded-[6px] font-bold">1234</span>
-                      </p>
+                    <div className="text-center text-sm">
+                      {secondsLeft > 0 ? (
+                        <span className="text-[#64748b]">
+                          Resend code in <span className="font-semibold text-[#0f172a] tabular-nums">{secondsLeft}s</span>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={handleResend}
+                          disabled={isLoading}
+                          className="font-semibold text-[#4f46e5] hover:text-[#4338ca] hover:underline focus:outline-none transition-colors"
+                        >
+                          Didn't receive a code? Resend
+                        </button>
+                      )}
                     </div>
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

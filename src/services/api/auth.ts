@@ -1,43 +1,34 @@
-// Mock API Service for Authentication
+import { api } from './index';
 
 export interface AuthResponse {
   success: boolean;
   message?: string;
-  user?: {
-    id: string;
-    name: string;
-    role: string;
-  };
 }
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const authApi = {
   // Step 1: Request OTP
   requestOtp: async (email: string, phone: string): Promise<boolean> => {
-    await sleep(800);
-    // Simulate valid identifiers
-    if (!email || !phone || email.length < 5 || phone.length < 5) {
-      throw new Error('Please enter both a valid email and phone number.');
+    try {
+      const response = await api('/user/auth/otp/request', {
+        method: 'POST',
+        body: JSON.stringify({ email, phone_number: phone }),
+      });
+      return response.success;
+    } catch (err: any) {
+      throw new Error(err.message || 'Failed to request OTP');
     }
-    return true;
   },
 
   // Step 2: Verify OTP
-  verifyOtp: async (_identifier: string, otp: string): Promise<AuthResponse> => {
-    await sleep(1000);
-    // Hardcode '1234' for success test
-    if (otp !== '1234') {
-      throw new Error('Invalid OTP code. Please try again.');
+  verifyOtp: async (email: string, phone: string, otp: string): Promise<AuthResponse> => {
+    try {
+      const response = await api('/user/auth/otp/verify', {
+        method: 'POST',
+        body: JSON.stringify({ email, phone_number: phone, otp }),
+      });
+      return response;
+    } catch (err: any) {
+      throw new Error(err.message || 'Invalid OTP code');
     }
-
-    return {
-      success: true,
-      user: {
-        id: 'u-101',
-        name: 'Alex Doe',
-        role: 'User',
-      }
-    };
   }
 };
