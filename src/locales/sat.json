@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "login": "ᱞᱚᱜᱽ ᱤᱱ",
+    "signup": "ᱥᱟᱭᱤᱱ ᱟᱯ",
+    "first_name": "ᱧᱩᱛᱩᱢ",
+    "last_name": "ᱯᱟᱹᱨᱤᱥ",
+    "email": "ᱤ-ᱢᱮᱞ",
+    "phone": "ᱯᱷᱚᱱ",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "continue": "ᱞᱟᱦᱟᱜ ᱢᱮ",
+    "otp_sent": "OTP ᱵᱷᱮᱡᱟ ᱮᱱᱟ",
+    "resend_otp": "Resend OTP",
+    "verify_otp": "OTP ᱯᱚᱨᱢᱟᱱ ᱢᱮ",
+    "login_subtitle": "Secure Access to Your Data Consents",
+    "signup_subtitle": "Start Managing Your Privacy Today",
+    "welcome_back": "ᱥᱟᱹᱜᱩᱱ ᱫᱟᱨᱟᱢ"
+  },
+  "profile": {
+    "title": "ᱯᱨᱚᱯᱷᱟᱭᱤᱞ ᱟᱨ ᱥᱮᱴᱤᱝᱥ",
+    "subtitle": "Manage your account preferences and security logs.",
+    "account": "ᱤᱧᱟᱜ ᱮᱠᱟᱣᱩᱱᱴ",
+    "principal_id": "Principal ID",
+    "verified_email": "Verified Email",
+    "verified_mobile": "Verified Mobile",
+    "preferences": "System Preferences",
+    "lang_pref": "Preferred Digital Language",
+    "save": "ᱥᱟᱧᱪᱟᱣ",
+    "logs": "ᱥᱤᱠᱤᱣᱨᱤᱴᱤ ᱞᱚᱜᱽ",
+    "save_success": "Preferences Saved Successfully!",
+    "verified_account": "Verified Account",
+    "verified_id": "Verified Identity",
+    "lang_hint": "Applies to DSR communications and email alerts.",
+    "logs_subtitle": "Audited log of your platform interactions"
+  },
+  "nav": {
+    "overview": "ᱚᱵᱷᱟᱨᱵᱷᱤᱭᱩ",
+    "consents": "ᱤᱧᱟᱜ ᱦᱮᱸᱥᱟᱹᱨᱤ",
+    "dsr": "DSR Management",
+    "grievance": "Grievance System",
+    "feedback": "Feedback",
+    "profile": "ᱯᱨᱚᱯᱷᱟᱭᱤᱞ",
+    "main_menu": "Main Menu",
+    "logout": "ᱞᱚᱜᱽ ᱟᱣᱩᱴ"
+  }
+}

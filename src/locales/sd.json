@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "login": "لاگ ان",
+    "signup": "سائن اپ",
+    "first_name": "نالو",
+    "last_name": "ذات",
+    "email": "اي ميل",
+    "phone": "فون",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "continue": "جاري رکو",
+    "otp_sent": "OTP موڪليو ويو",
+    "resend_otp": "Resend OTP",
+    "verify_otp": "OTP تصديق ڪريو",
+    "login_subtitle": "Secure Access to Your Data Consents",
+    "signup_subtitle": "Start Managing Your Privacy Today",
+    "welcome_back": "ڀلي ڪري آيا"
+  },
+  "profile": {
+    "title": "پروفائيل ۽ سيٽنگون",
+    "subtitle": "Manage your account preferences and security logs.",
+    "account": "منهنجو اڪائونٽ",
+    "principal_id": "Principal ID",
+    "verified_email": "Verified Email",
+    "verified_mobile": "Verified Mobile",
+    "preferences": "System Preferences",
+    "lang_pref": "Preferred Digital Language",
+    "save": "محفوظ ڪريو",
+    "logs": "سيڪيورٽي لاگز",
+    "save_success": "Preferences Saved Successfully!",
+    "verified_account": "Verified Account",
+    "verified_id": "Verified Identity",
+    "lang_hint": "Applies to DSR communications and email alerts.",
+    "logs_subtitle": "Audited log of your platform interactions"
+  },
+  "nav": {
+    "overview": "جائزو",
+    "consents": "منهنجون رضامنديون",
+    "dsr": "DSR Management",
+    "grievance": "Grievance System",
+    "feedback": "Feedback",
+    "profile": "پروفائيل",
+    "main_menu": "Main Menu",
+    "logout": "لاگ آئوٽ"
+  }
+}

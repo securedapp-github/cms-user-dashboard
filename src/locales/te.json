@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "login": "లాగిన్",
+    "signup": "సైన్ అప్",
+    "first_name": "మొదటి పేరు",
+    "last_name": "చివరి పేరు",
+    "email": "ఇమెయిల్",
+    "phone": "ఫోన్ నంబర్",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "continue": "కొనసాగించు",
+    "otp_sent": "OTP పంపబడింది",
+    "resend_otp": "Resend OTP",
+    "verify_otp": "OTP ధృవీకరించు",
+    "login_subtitle": "Secure Access to Your Data Consents",
+    "signup_subtitle": "Start Managing Your Privacy Today",
+    "welcome_back": "తిరిగి స్వాగతం"
+  },
+  "profile": {
+    "title": "ప్రొఫైల్ & సెట్టింగ్‌లు",
+    "subtitle": "Manage your account preferences and security logs.",
+    "account": "నా ఖాతా",
+    "principal_id": "Principal ID",
+    "verified_email": "Verified Email",
+    "verified_mobile": "Verified Mobile",
+    "preferences": "System Preferences",
+    "lang_pref": "Preferred Digital Language",
+    "save": "సేవ్ చేయి",
+    "logs": "భద్రతా లాగ్‌లు",
+    "save_success": "Preferences Saved Successfully!",
+    "verified_account": "Verified Account",
+    "verified_id": "Verified Identity",
+    "lang_hint": "Applies to DSR communications and email alerts.",
+    "logs_subtitle": "Audited log of your platform interactions"
+  },
+  "nav": {
+    "overview": "అవలోకనం",
+    "consents": "నా సమ్మతులు",
+    "dsr": "DSR Management",
+    "grievance": "Grievance System",
+    "feedback": "Feedback",
+    "profile": "ప్రొఫైల్",
+    "main_menu": "Main Menu",
+    "logout": "లాగ్అవుట్"
+  }
+}

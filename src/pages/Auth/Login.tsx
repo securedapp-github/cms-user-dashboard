@@ -5,12 +5,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { authApi } from '../../services/api/auth';
 import { userApi } from '../../services/api/userApi';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { LANGUAGES } from '../../i18n';
 import logo from '../../assets/STRIGHT.png';
 
 const requestOtpSchema = z.object({
@@ -21,6 +23,7 @@ const requestOtpSchema = z.object({
 type RequestOtpForm = z.infer<typeof requestOtpSchema>;
 
 export default function Login() {
+  const { t, i18n } = useTranslation();
   const [step, setStep] = useState<1 | 2>(1);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
@@ -174,7 +177,7 @@ export default function Login() {
             />
           </div>
           <p className="text-[#64748b] text-sm relative z-10">
-            {step === 1 ? 'Sign in to your privacy dashboard' : 'Enter your verification code'}
+            {step === 1 ? t('auth.login_subtitle') : t('auth.otp_sent')}
           </p>
           {/* Step indicator */}
           <div className="flex items-center justify-center gap-1 mt-3">
@@ -184,11 +187,24 @@ export default function Login() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-[24px] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-[#f1f5f9] overflow-hidden">
+        <div className="bg-white rounded-[24px] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-[#f1f5f9] overflow-hidden relative">
+          {/* Language Selector */}
+          <div className="absolute top-3 right-3 rtl:left-auto rtl:right-3 z-20">
+            <select 
+              value={i18n.language} 
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              className="text-[10px] font-bold text-[#64748b] bg-[#f8fafc] border border-[#e2e8f0] rounded-lg px-2 py-1 outline-none focus:border-[#4f46e5] transition-all cursor-pointer uppercase tracking-wider"
+            >
+              {LANGUAGES.map(l => (
+                <option key={l.value} value={l.value}>{l.label}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Top accent */}
           <div className="h-1 w-full bg-gradient-to-r from-[#4f46e5] to-[#6366f1]" />
 
-          <div className="p-8">
+          <div className="pt-12 pb-8 px-8">
             <AnimatePresence mode="wait">
               {step === 1 ? (
                 <motion.div
@@ -199,12 +215,12 @@ export default function Login() {
                   transition={{ duration: 0.2 }}
                 >
                   <div className="mb-5">
-                    <h2 className="text-lg font-semibold text-[#0f172a] mb-1">Welcome back</h2>
-                    <p className="text-sm text-[#64748b]">Enter your credentials to receive a one-time code.</p>
+                    <h2 className="text-lg font-semibold text-[#0f172a] mb-1">{t('auth.welcome_back', 'Welcome back')}</h2>
+                    <p className="text-sm text-[#64748b]">{t('auth.login_subtitle')}</p>
                   </div>
                   <form onSubmit={handleSubmit(onRequestSubmit)} className="flex flex-col gap-4">
                     <Input
-                      label="Email Address"
+                      label={t('auth.email')}
                       placeholder="name@domain.com"
                       {...register('email')}
                       error={errors.email?.message}
@@ -212,7 +228,7 @@ export default function Login() {
                       autoComplete="email"
                     />
                     <Input
-                      label="Phone Number"
+                      label={t('auth.phone')}
                       placeholder="+91 98765 43210"
                       {...register('phone_number')}
                       error={errors.phone_number?.message}
@@ -222,16 +238,16 @@ export default function Login() {
                     <Button type="submit" className="w-full mt-1 group" isLoading={isLoading} size="md">
                       {!isLoading && (
                         <>
-                          Continue
-                          <ArrowRight size={16} className="ml-1.5 group-hover:translate-x-1 transition-transform" />
+                          {t('auth.continue')}
+                          <ArrowRight size={16} className="ms-1.5 rtl:rotate-180 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
                         </>
                       )}
                     </Button>
                     <div className="text-center mt-3 pt-3 border-t border-[#f1f5f9]">
                       <p className="text-sm text-[#64748b]">
-                        New to SecureCMS?{' '}
+                        {t('auth.no_account')}{' '}
                         <Link to="/signup" className="text-[#4f46e5] font-semibold hover:text-[#4338ca] transition-colors">
-                          Create Account
+                          {t('auth.signup')}
                         </Link>
                       </p>
                     </div>
@@ -258,8 +274,8 @@ export default function Login() {
                   <div className="w-10 h-10 rounded-[12px] bg-[#eef2ff] flex items-center justify-center mb-4">
                     <Lock size={18} className="text-[#4f46e5]" />
                   </div>
-                  <h2 className="text-base font-semibold text-[#0f172a] mb-1">Check your inbox</h2>
-                  <p className="text-sm text-[#64748b] mb-6 text-center">Enter the 6-digit code we sent to your device.</p>
+                  <h2 className="text-base font-semibold text-[#0f172a] mb-1">{t('auth.verify_otp')}</h2>
+                  <p className="text-sm text-[#64748b] mb-6 text-center">{t('auth.otp_sent')}</p>
 
                   {/* OTP inputs */}
                   <div className="flex gap-3 justify-center mb-6">
@@ -293,13 +309,13 @@ export default function Login() {
                     isLoading={isLoading}
                     disabled={otp.some(v => v === '')}
                   >
-                    Verify & Sign In
+                    {t('auth.verify_otp')}
                   </Button>
 
                     <div className="text-center text-sm">
                       {secondsLeft > 0 ? (
                         <span className="text-[#64748b]">
-                          Resend code in <span className="font-semibold text-[#0f172a] tabular-nums">{secondsLeft}s</span>
+                          {t('auth.resend_otp')} in <span className="font-semibold text-[#0f172a] tabular-nums">{secondsLeft}s</span>
                         </span>
                       ) : (
                         <button
@@ -307,7 +323,7 @@ export default function Login() {
                           disabled={isLoading}
                           className="font-semibold text-[#4f46e5] hover:text-[#4338ca] hover:underline focus:outline-none transition-colors"
                         >
-                          Didn't receive a code? Resend
+                          {t('auth.resend_otp')}
                         </button>
                       )}
                     </div>

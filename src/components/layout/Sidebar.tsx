@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   LayoutDashboard, 
   ShieldCheck, 
@@ -18,13 +19,14 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { t } = useTranslation();
   const navItems = [
-    { name: 'Overview',        path: '/',          icon: <LayoutDashboard size={18} />,  end: true },
-    { name: 'My Consents',     path: '/consents',  icon: <ShieldCheck size={18} /> },
-    { name: 'DSR Management',  path: '/dsr',       icon: <FileText size={18} /> },
-    { name: 'Grievance System',path: '/grievance', icon: <AlertCircle size={18} /> },
-    { name: 'Feedback',        path: '/feedback',  icon: <MessageSquare size={18} /> },
-    { name: 'Profile',         path: '/profile',   icon: <User size={18} /> },
+    { name: t('nav.overview'),        path: '/',          icon: <LayoutDashboard size={18} />,  end: true },
+    { name: t('nav.consents'),        path: '/consents',  icon: <ShieldCheck size={18} /> },
+    { name: t('nav.dsr'),             path: '/dsr',       icon: <FileText size={18} /> },
+    { name: t('nav.grievance'),       path: '/grievance', icon: <AlertCircle size={18} /> },
+    { name: t('nav.feedback'),        path: '/feedback',  icon: <MessageSquare size={18} /> },
+    { name: t('nav.profile'),         path: '/profile',   icon: <User size={18} /> },
   ];
 
   return (
@@ -40,11 +42,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar panel */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-[260px] flex flex-col",
-          "bg-white border-r border-[#f1f5f9]",
-          "shadow-[4px_0_24px_rgba(0,0,0,0.06)]",
+          "fixed top-0 start-0 z-50 h-full w-[260px] flex flex-col",
+          "bg-white border-ie border-[#f1f5f9]",
+          "shadow-[4px_0_24px_rgba(0,0,0,0.06)] rtl:shadow-[-4px_0_24px_rgba(0,0,0,0.06)]",
           "transition-transform duration-300 ease-in-out md:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          isOpen ? "translate-x-0" : "max-md:ltr:-translate-x-full max-md:rtl:translate-x-full"
         )}
       >
         {/* Logo */}
@@ -69,7 +71,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Nav section label */}
         <p className="px-5 text-[10px] font-semibold tracking-widest text-[#94a3b8] uppercase mb-2">
-          Main Menu
+          {t('nav.main_menu', 'Main Menu')}
         </p>
 
         {/* Navigation */}
@@ -93,7 +95,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   : [
                       "text-[#64748b]",
                       "hover:bg-[#f8fafc] hover:text-[#0f172a]",
-                      "hover:translate-x-1",
+                      "hover:ms-1",
                     ].join(' ')
               )}
             >
@@ -109,7 +111,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   </span>
                   <span className="truncate">{item.name}</span>
                   {isActive && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60 shrink-0" />
+                    <span className="ms-auto w-1.5 h-1.5 rounded-full bg-white/60 shrink-0" />
                   )}
                 </>
               )}
@@ -126,7 +128,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <span className="w-8 h-8 rounded-[8px] bg-[#fef2f2] flex items-center justify-center text-[#ef4444] group-hover:bg-[#fee2e2] transition-all shrink-0">
               <LogOut size={16} />
             </span>
-            <span>Logout</span>
+            <span>{t('nav.logout', 'Logout')}</span>
           </NavLink>
         </div>
       </aside>

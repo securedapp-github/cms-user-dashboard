@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "login": "ലോഗിൻ",
+    "signup": "സൈൻ അപ്പ്",
+    "first_name": "പേര്",
+    "last_name": "കുടുംബപ്പേര്",
+    "email": "ഇമെയിൽ",
+    "phone": "ഫോൺ",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "continue": "തുടരുക",
+    "otp_sent": "OTP അയച്ചു",
+    "resend_otp": "Resend OTP",
+    "verify_otp": "OTP പരിശോധിക്കുക",
+    "login_subtitle": "Secure Access to Your Data Consents",
+    "signup_subtitle": "Start Managing Your Privacy Today",
+    "welcome_back": "വീണ്ടും സ്വാഗതം"
+  },
+  "profile": {
+    "title": "പ്രൊഫൈൽ & ക്രമീകരണങ്ങൾ",
+    "subtitle": "Manage your account preferences and security logs.",
+    "account": "എൻ്റെ അക്കൗണ്ട്",
+    "principal_id": "Principal ID",
+    "verified_email": "Verified Email",
+    "verified_mobile": "Verified Mobile",
+    "preferences": "System Preferences",
+    "lang_pref": "Preferred Digital Language",
+    "save": "സംരക്ഷിക്കുക",
+    "logs": "സുരക്ഷാ ലോഗുകൾ",
+    "save_success": "Preferences Saved Successfully!",
+    "verified_account": "Verified Account",
+    "verified_id": "Verified Identity",
+    "lang_hint": "Applies to DSR communications and email alerts.",
+    "logs_subtitle": "Audited log of your platform interactions"
+  },
+  "nav": {
+    "overview": "അവലോകനം",
+    "consents": "എന്റെ സമ്മതങ്ങൾ",
+    "dsr": "DSR Management",
+    "grievance": "Grievance System",
+    "feedback": "Feedback",
+    "profile": "പ്രൊഫൈൽ",
+    "main_menu": "Main Menu",
+    "logout": "ലോഗൗട്ട്"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "login": "உள்நுழை",
+    "signup": "பதிவு செய்",
+    "first_name": "முதல் பெயர்",
+    "last_name": "கடைசி பெயர்",
+    "email": "மின்னஞ்சல்",
+    "phone": "தொலைபேசி",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "continue": "தொடரவும்",
+    "otp_sent": "OTP அனுப்பப்பட்டது",
+    "resend_otp": "Resend OTP",
+    "verify_otp": "OTP ஐ சரிபார்க்கவும்",
+    "login_subtitle": "Secure Access to Your Data Consents",
+    "signup_subtitle": "Start Managing Your Privacy Today",
+    "welcome_back": "மீண்டும் வரவேற்கிறோம்"
+  },
+  "profile": {
+    "title": "சுயவிவரம் & அமைப்புகள்",
+    "subtitle": "Manage your account preferences and security logs.",
+    "account": "என் கணக்கு",
+    "principal_id": "Principal ID",
+    "verified_email": "Verified Email",
+    "verified_mobile": "Verified Mobile",
+    "preferences": "System Preferences",
+    "lang_pref": "Preferred Digital Language",
+    "save": "சேமி",
+    "logs": "பாதுகாப்பு பதிவுகள்",
+    "save_success": "Preferences Saved Successfully!",
+    "verified_account": "Verified Account",
+    "verified_id": "Verified Identity",
+    "lang_hint": "Applies to DSR communications and email alerts.",
+    "logs_subtitle": "Audited log of your platform interactions"
+  },
+  "nav": {
+    "overview": "கண்ணோட்டம்",
+    "consents": "எனது ஒப்புதல்கள்",
+    "dsr": "DSR Management",
+    "grievance": "Grievance System",
+    "feedback": "Feedback",
+    "profile": "சுயவிவரம்",
+    "main_menu": "Main Menu",
+    "logout": "வெளியேறு"
+  }
+}

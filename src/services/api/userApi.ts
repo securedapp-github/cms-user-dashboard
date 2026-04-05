@@ -26,11 +26,13 @@ export const userApi = {
   },
 
   // 4. Consents List
-  getConsents: async (filters?: { tenant_id?: string; app_id?: string; status?: string }) => {
+  getConsents: async (filters?: { tenant_id?: string; app_id?: string; status?: string; startDate?: string; endDate?: string }) => {
     const params = new URLSearchParams();
     if (filters?.tenant_id) params.append('tenant_id', filters.tenant_id);
     if (filters?.app_id) params.append('app_id', filters.app_id);
     if (filters?.status && filters.status !== 'All') params.append('status', filters.status.toLowerCase());
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
 
     const url = params.toString() ? `/user/consents?${params.toString()}` : `/user/consents`;
     return await api(url);

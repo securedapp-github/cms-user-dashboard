@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Menu, Bell, Search, ChevronDown, LogOut } from 'lucide-react';
+import { Menu, Bell, ChevronDown, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 
@@ -46,11 +46,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
         {/* Right: search + notif + avatar */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Search pill — desktop only */}
-          <div className="hidden lg:flex items-center gap-2 bg-[#f8fafc] border border-[#e2e8f0] rounded-full px-4 py-2 text-sm text-[#94a3b8] hover:border-[#cbd5e1] cursor-pointer transition-all w-48">
-            <Search size={14} />
-            <span>Quick search…</span>
-          </div>
 
           {/* Notifications */}
           <button
@@ -59,7 +54,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           >
             <Bell size={18} />
             {/* Red dot */}
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ef4444] rounded-full border-2 border-white" />
+            <span className="absolute top-1.5 end-1.5 w-2 h-2 bg-[#ef4444] rounded-full border-2 border-white" />
           </button>
 
           {/* Divider */}
@@ -75,11 +70,11 @@ export function Header({ onMenuToggle }: HeaderProps) {
           </button>
 
           {/* Avatar / User */}
-          <button className="flex items-center gap-2.5 pl-1 pr-2 py-1 rounded-full hover:bg-[#f8fafc] transition-all group">
+          <button className="flex items-center gap-2.5 ps-1 pe-2 py-1 rounded-full hover:bg-[#f8fafc] transition-all group">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4f46e5] to-[#6366f1] shadow-sm flex items-center justify-center shrink-0 text-white">
               <span className="text-xs font-bold">{initials}</span>
             </div>
-            <div className="hidden md:flex flex-col items-start text-left">
+            <div className="hidden md:flex flex-col items-start text-start">
               <span className="text-[13px] font-semibold text-[#0f172a] leading-tight truncate max-w-[120px]">{displayName}</span>
               <span className="text-[11px] text-[#94a3b8]">Principal</span>
             </div>

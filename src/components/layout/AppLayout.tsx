@@ -61,7 +61,7 @@ export function AppLayout() {
         onClose={() => setIsSidebarOpen(false)} 
       />
 
-      <div className="flex-1 flex flex-col min-w-0 md:ml-[260px]">
+      <div className="flex-1 flex flex-col min-w-0 md:ms-[260px]">
         <Header 
           onMenuToggle={() => setIsSidebarOpen(true)}
         />

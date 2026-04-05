@@ -85,7 +85,7 @@ export function PurposeDetailModal({
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#94a3b8] uppercase tracking-tight">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Policy Version: {consent.policy_version}
+              POLICY VERSION: {consent.policy_version || "N/A"}
             </div>
           </div>
           <div className="flex items-center gap-2">

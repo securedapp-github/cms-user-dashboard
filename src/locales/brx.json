@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "login": "लgin",
+    "signup": "साइन अप",
+    "first_name": "मुं",
+    "last_name": "आफि",
+    "email": "इमेल",
+    "phone": "फोन",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "continue": "जागायनो",
+    "otp_sent": "OTP हरबाय",
+    "resend_otp": "Resend OTP",
+    "verify_otp": "OTP नायबिजिर",
+    "login_subtitle": "Secure Access to Your Data Consents",
+    "signup_subtitle": "Start Managing Your Privacy Today",
+    "welcome_back": "बरायबाय"
+  },
+  "profile": {
+    "title": "प्रफाइल आरो सेटिंस",
+    "subtitle": "Manage your account preferences and security logs.",
+    "account": "आंनि एकाउन्ट",
+    "principal_id": "Principal ID",
+    "verified_email": "Verified Email",
+    "verified_mobile": "Verified Mobile",
+    "preferences": "System Preferences",
+    "lang_pref": "Preferred Digital Language",
+    "save": "सेभ खालाम",
+    "logs": "निरापद लग",
+    "save_success": "Preferences Saved Successfully!",
+    "verified_account": "Verified Account",
+    "verified_id": "Verified Identity",
+    "lang_hint": "Applies to DSR communications and email alerts.",
+    "logs_subtitle": "Audited log of your platform interactions"
+  },
+  "nav": {
+    "overview": "नोजोर",
+    "consents": "आंनि गनायथि",
+    "dsr": "DSR Management",
+    "grievance": "Grievance System",
+    "feedback": "Feedback",
+    "profile": "प्रफाइल",
+    "main_menu": "Main Menu",
+    "logout": "लगआउट"
+  }
+}

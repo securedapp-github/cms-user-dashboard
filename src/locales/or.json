@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "login": "ଲଗ୍ ଇନ୍",
+    "signup": "ସାଇନ୍ ଅପ୍",
+    "first_name": "ପ୍ରଥମ ନାମ",
+    "last_name": "ଶେଷ ନାମ",
+    "email": "ଇମେଲ୍",
+    "phone": "ଫୋନ୍ ନମ୍ବର",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "continue": "ଜାରି ରଖନ୍ତୁ",
+    "otp_sent": "OTP ପଠାଗଲା",
+    "resend_otp": "Resend OTP",
+    "verify_otp": "OTP ଯାଞ୍ଚ କରନ୍ତୁ",
+    "login_subtitle": "Secure Access to Your Data Consents",
+    "signup_subtitle": "Start Managing Your Privacy Today",
+    "welcome_back": "ସ୍ୱାଗତମ୍"
+  },
+  "profile": {
+    "title": "ପ୍ରୋଫାଇଲ୍ ଏବଂ ସେଟିଂସମୂହ",
+    "subtitle": "Manage your account preferences and security logs.",
+    "account": "ମୋ ଆକାଉଣ୍ଟ୍",
+    "principal_id": "Principal ID",
+    "verified_email": "Verified Email",
+    "verified_mobile": "Verified Mobile",
+    "preferences": "System Preferences",
+    "lang_pref": "Preferred Digital Language",
+    "save": "ସେଭ୍ କରନ୍ତୁ",
+    "logs": "ସୁରକ୍ଷା ଲଗ୍",
+    "save_success": "Preferences Saved Successfully!",
+    "verified_account": "Verified Account",
+    "verified_id": "Verified Identity",
+    "lang_hint": "Applies to DSR communications and email alerts.",
+    "logs_subtitle": "Audited log of your platform interactions"
+  },
+  "nav": {
+    "overview": "ଓଭରଭ୍ୟୁ",
+    "consents": "ମୋର ସମ୍ମତି",
+    "dsr": "DSR Management",
+    "grievance": "Grievance System",
+    "feedback": "Feedback",
+    "profile": "ପ୍ରୋଫାଇଲ୍",
+    "main_menu": "Main Menu",
+    "logout": "ଲଗଆଉଟ୍"
+  }
+}

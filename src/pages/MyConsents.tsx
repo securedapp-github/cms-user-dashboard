@@ -15,6 +15,8 @@ export default function MyConsents() {
   const [filterTenant, setFilterTenant] = useState('all');
   const [filterApp, setFilterApp] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPeriod, setFilterPeriod] = useState('all');
+  const [customDates, setCustomDates] = useState({ start: '', end: '' });
   const { addToast } = useToastStore();
   
   // Modal State
@@ -62,10 +64,41 @@ export default function MyConsents() {
   // Load Consents based on Filters
   const fetchConsents = async () => {
     try {
+      let startDate: string | undefined;
+      let endDate: string | undefined;
+
+      if (filterPeriod !== 'all') {
+        const now = new Date();
+        const end = new Date();
+        let start = new Date();
+
+        if (filterPeriod === 'today') {
+          start.setHours(0, 0, 0, 0);
+        } else if (filterPeriod === '7days') {
+          start.setDate(now.getDate() - 7);
+        } else if (filterPeriod === '30days') {
+          start.setDate(now.getDate() - 30);
+        } else if (filterPeriod === '3months') {
+          start.setMonth(now.getMonth() - 3);
+        } else if (filterPeriod === '6months') {
+          start.setMonth(now.getMonth() - 6);
+        } else if (filterPeriod === 'custom') {
+          startDate = customDates.start ? new Date(customDates.start).toISOString() : undefined;
+          endDate = customDates.end ? new Date(customDates.end).toISOString() : undefined;
+        }
+
+        if (filterPeriod !== 'custom') {
+          startDate = start.toISOString();
+          endDate = end.toISOString();
+        }
+      }
+
       const res = await userApi.getConsents({
         tenant_id: filterTenant !== 'all' ? filterTenant : undefined,
         app_id: filterApp !== 'all' ? filterApp : undefined,
         status: filterStatus !== 'all' ? filterStatus.toLowerCase() : undefined,
+        startDate,
+        endDate,
       });
       if (res && res.consents) setConsents(res.consents);
     } catch (err) {
@@ -75,7 +108,7 @@ export default function MyConsents() {
 
   useEffect(() => {
     fetchConsents();
-  }, [filterTenant, filterApp, filterStatus]);
+  }, [filterTenant, filterApp, filterStatus, filterPeriod, customDates]);
 
   const handleCardClick = async (consentId: string, purposeId?: string) => {
     setLoadingDetails(true);
@@ -170,7 +203,7 @@ export default function MyConsents() {
             </div>
             <span className="text-sm font-semibold text-[#0f172a]">Filter Consents</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Select
               label="Tenant / Bank"
               value={filterTenant}
@@ -194,7 +227,48 @@ export default function MyConsents() {
                 { label: 'Expired', value: 'expired' },
               ]}
             />
+            <Select
+              label="Time Period"
+              value={filterPeriod}
+              onChange={(e) => setFilterPeriod(e.target.value)}
+              options={[
+                { label: 'All Time', value: 'all' },
+                { label: 'Today', value: 'today' },
+                { label: 'Last 7 Days', value: '7days' },
+                { label: 'Last 30 Days', value: '30days' },
+                { label: 'Last 3 Months', value: '3months' },
+                { label: 'Last 6 Months', value: '6months' },
+                { label: 'Custom Range', value: 'custom' },
+              ]}
+            />
           </div>
+
+          {filterPeriod === 'custom' && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-[#f1f5f9]"
+            >
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider ml-1">Start Date</label>
+                <input 
+                  type="date"
+                  value={customDates.start}
+                  onChange={(e) => setCustomDates(d => ({ ...d, start: e.target.value }))}
+                  className="w-full px-4 py-2 text-sm rounded-xl border border-[#e2e8f0] bg-[#f9fafb] focus:outline-none focus:border-[#4f46e5] focus:bg-white transition-all"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider ml-1">End Date</label>
+                <input 
+                  type="date"
+                  value={customDates.end}
+                  onChange={(e) => setCustomDates(d => ({ ...d, end: e.target.value }))}
+                  className="w-full px-4 py-2 text-sm rounded-xl border border-[#e2e8f0] bg-[#f9fafb] focus:outline-none focus:border-[#4f46e5] focus:bg-white transition-all"
+                />
+              </div>
+            </motion.div>
+          )}
         </Card>
       </motion.div>
 
@@ -253,7 +327,7 @@ export default function MyConsents() {
       <Modal
         isOpen={withdrawModalOpen}
         onClose={() => !isSubmitting && setWithdrawModalOpen(false)}
-        title="Withdraw All Access"
+        title="Withdraw Access"
       >
         <div className="flex flex-col gap-6 py-2">
           <div className="flex gap-5">
@@ -261,9 +335,9 @@ export default function MyConsents() {
               <AlertCircle size={28} />
             </div>
             <div className="space-y-2">
-              <p className="text-[#0f172a] font-bold text-base">Confirm total withdrawal?</p>
+              <p className="text-[#0f172a] font-bold text-base">Confirm withdrawal?</p>
               <p className="text-sm text-[#64748b] leading-relaxed">
-                This will immediately stop <span className="font-semibold text-[#0f172a]">{selectedDetails?.fiduciary?.name}</span> from accessing any of your data for <span className="font-semibold text-[#0f172a]">{selectedDetails?.application?.name}</span>.
+                This will immediately stop <span className="font-semibold text-[#0f172a]">{selectedDetails?.fiduciary?.name}</span> from accessing your data for the purpose of <span className="font-semibold text-[#0f172a]">{selectedPurpose?.name}</span>.
               </p>
             </div>
           </div>

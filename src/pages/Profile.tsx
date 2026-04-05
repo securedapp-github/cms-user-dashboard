@@ -4,6 +4,8 @@ import {
   UserCircle, Settings, ShieldCheck, Download,
   Mail, Phone, Globe, Lock
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LANGUAGES } from '../i18n';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Select } from '../components/ui/Select';
@@ -69,17 +71,17 @@ function ReadonlyField({
 }
 
 export default function Profile() {
+  const { t, i18n } = useTranslation();
   const { email: storeEmail, phone_number: storePhone, user } = useAuthStore();
   const { addToast } = useToastStore();
   const [isSaving, setIsSaving] = useState(false);
-  const [language, setLanguage] = useState('en');
 
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    await new Promise(res => setTimeout(res, 1000));
+    await new Promise(res => setTimeout(res, 800));
     setIsSaving(false);
-    addToast('Preferences Saved Successfully!', 'success');
+    addToast(t('profile.save_success', 'Preferences Saved Successfully!'), 'success');
   };
 
   return (
@@ -88,8 +90,8 @@ export default function Profile() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-[#0f172a] tracking-tight">Profile & Settings</h2>
-          <p className="text-sm text-[#64748b] mt-0.5">Manage your account preferences and security logs.</p>
+          <h2 className="text-xl font-bold text-[#0f172a] tracking-tight">{t('profile.title')}</h2>
+          <p className="text-sm text-[#64748b] mt-0.5">{t('profile.subtitle')}</p>
         </div>
       </div>
 
@@ -120,12 +122,12 @@ export default function Profile() {
                 <h3 className="font-bold text-[#0f172a] text-lg uppercase tracking-tight">
                   {user?.email?.split('@')[0] || 'Principal'}
                 </h3>
-                <p className="text-sm text-[#64748b] font-medium">Verified Account</p>
+                <p className="text-sm text-[#64748b] font-medium">{t('profile.verified_account', 'Verified Account')}</p>
                 <div className="flex items-center gap-1.5 mt-2.5">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                     <ShieldCheck size={12} className="text-emerald-500" />
                   </div>
-                  <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider">Verified Identity</span>
+                  <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider">{t('profile.verified_id', 'Verified Identity')}</span>
                 </div>
               </div>
             </Card>
@@ -138,22 +140,22 @@ export default function Profile() {
                 <div className="w-7 h-7 rounded-[8px] bg-[#eef2ff] flex items-center justify-center">
                   <UserCircle size={14} className="text-[#4f46e5]" />
                 </div>
-                <h3 className="font-semibold text-[#0f172a] text-sm">My Account</h3>
+                <h3 className="font-semibold text-[#0f172a] text-sm">{t('profile.account')}</h3>
               </div>
               <div className="p-5 space-y-4">
                 <ReadonlyField
-                  label="Principal ID"
+                  label={t('profile.principal_id')}
                   value={user?.principal_id || '3fa85f64-...'}
                   icon={<ShieldCheck size={16} />}
                   mono
                 />
                 <ReadonlyField
-                  label="Verified Email"
+                  label={t('profile.verified_email')}
                   value={user?.email || storeEmail || 'user@example.com'}
                   icon={<Mail size={16} />}
                 />
                 <ReadonlyField
-                  label="Verified Mobile"
+                  label={t('profile.verified_mobile')}
                   value={user?.phone_number || storePhone || '+91 98765 43210'}
                   icon={<Phone size={16} />}
                   mono
@@ -173,31 +175,25 @@ export default function Profile() {
                 <div className="w-7 h-7 rounded-[8px] bg-[#eef2ff] flex items-center justify-center">
                   <Settings size={14} className="text-[#4f46e5]" />
                 </div>
-                <h3 className="font-semibold text-[#0f172a] text-sm">System Preferences</h3>
+                <h3 className="font-semibold text-[#0f172a] text-sm">{t('profile.preferences')}</h3>
               </div>
               <div className="p-5">
                 <form onSubmit={handleSavePreferences}>
                   <div className="relative">
-                    <Globe className="absolute left-3 top-[34px] z-10 text-[#94a3b8]" size={15} />
+                    <Globe className="absolute inset-is-3 top-[34px] z-10 text-[#94a3b8]" size={15} />
                     <Select
-                      label="Preferred Digital Language"
-                      className="pl-9"
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      options={[
-                        { label: 'English (Default)', value: 'en' },
-                        { label: 'हिंदी (Hindi)', value: 'hi' },
-                        { label: 'தமிழ் (Tamil)', value: 'ta' },
-                        { label: 'తెలుగు (Telugu)', value: 'te' },
-                        { label: 'मराठी (Marathi)', value: 'mr' },
-                      ]}
+                      label={t('profile.lang_pref')}
+                      className="ps-9"
+                      value={i18n.language}
+                      onChange={(e) => i18n.changeLanguage(e.target.value)}
+                      options={LANGUAGES.map(l => ({ label: l.label, value: l.value }))}
                     />
                   </div>
                   <p className="text-xs text-[#94a3b8] mt-2 mb-4">
-                    Applies to DSR communications and email alerts.
+                    {t('profile.lang_hint', 'Applies to DSR communications and email alerts.')}
                   </p>
                   <Button type="submit" isLoading={isSaving} className="w-full" size="md">
-                    Save Preferences
+                    {t('profile.save')}
                   </Button>
                 </form>
               </div>
@@ -219,9 +215,9 @@ export default function Profile() {
                   <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600" />
                   <div>
                     <h3 className="font-semibold text-[#0f172a] text-[15px] flex items-center gap-1.5">
-                      Security & Action Logs
+                      {t('profile.logs')}
                     </h3>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">Audited log of your platform interactions</p>
+                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('profile.logs_subtitle', 'Audited log of your platform interactions')}</p>
                   </div>
                 </div>
                 <Button

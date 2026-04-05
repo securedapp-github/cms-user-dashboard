@@ -1,0 +1,48 @@
+{
+  "auth": {
+    "login": "লগইন",
+    "signup": "সাইন অপ",
+    "first_name": "মিং",
+    "last_name": "সগে",
+    "email": "ইমেল",
+    "phone": "ফোন",
+    "password": "Password",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "continue": "মখা চত্থবা",
+    "otp_sent": "OTP থাখ্রে",
+    "resend_otp": "Resend OTP",
+    "verify_otp": "OTP য়েংবা",
+    "login_subtitle": "Secure Access to Your Data Consents",
+    "signup_subtitle": "Start Managing Your Privacy Today",
+    "welcome_back": "তরাম্না ওকচরি"
+  },
+  "profile": {
+    "title": "প্রোফাইল অমসুং সেটিং",
+    "subtitle": "Manage your account preferences and security logs.",
+    "account": "ঐগী একাউন্ট",
+    "principal_id": "Principal ID",
+    "verified_email": "Verified Email",
+    "verified_mobile": "Verified Mobile",
+    "preferences": "System Preferences",
+    "lang_pref": "Preferred Digital Language",
+    "save": "সেভ তৌবা",
+    "logs": "সেক্যুরিটি লগ",
+    "save_success": "Preferences Saved Successfully!",
+    "verified_account": "Verified Account",
+    "verified_id": "Verified Identity",
+    "lang_hint": "Applies to DSR communications and email alerts.",
+    "logs_subtitle": "Audited log of your platform interactions"
+  },
+  "nav": {
+    "overview": "ওভরভ্যু",
+    "consents": "ঐগী অয়াবশিং",
+    "dsr": "DSR Management",
+    "grievance": "Grievance System",
+    "feedback": "Feedback",
+    "profile": "প্রোফাইল",
+    "main_menu": "Main Menu",
+    "logout": "লগআউট"
+  }
+}

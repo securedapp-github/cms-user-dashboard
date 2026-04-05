@@ -14,7 +14,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full flex flex-col gap-1">
         {label && (
-          <label htmlFor={selectId} className="text-sm font-medium text-[#0f172a] mb-0.5 block">
+          <label htmlFor={selectId} className="text-sm font-medium text-[#0f172a] mb-0.5 block text-start">
             {label}
           </label>
         )}
@@ -23,7 +23,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             id={selectId}
             ref={ref}
             className={cn(
-              "appearance-none w-full px-4 py-2.5 text-sm rounded-[10px] pr-10",
+              "appearance-none w-full ps-4 pe-10 py-2.5 text-sm rounded-[10px]",
               "border border-[#e2e8f0] bg-[#f9fafb] text-[#0f172a]",
               "transition-all duration-200",
               "focus:outline-none focus:border-[#4f46e5] focus:bg-white",
@@ -45,7 +45,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#64748b]">
+          <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center px-3 text-[#64748b]">
             <ChevronDown size={15} />
           </div>
         </div>

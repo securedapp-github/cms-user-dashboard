@@ -5,10 +5,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
 import { ArrowRight, UserPlus, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { LANGUAGES } from '../../i18n';
 
 const signupSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
@@ -20,6 +22,7 @@ const signupSchema = z.object({
 type SignupForm = z.infer<typeof signupSchema>;
 
 export default function Signup() {
+  const { t, i18n } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { setSignupData } = useAuthStore();
@@ -70,10 +73,10 @@ export default function Signup() {
             </div>
           </div>
           <h1 className="text-2xl font-bold text-[#0f172a] mb-1.5 tracking-tight">
-            Create Account
+            {t('auth.signup')}
           </h1>
           <p className="text-[#64748b] text-sm">
-            Join SecureCMS to manage your privacy securely
+            {t('auth.signup_subtitle')}
           </p>
         </div>
 
@@ -81,23 +84,36 @@ export default function Signup() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-[24px] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-[#f1f5f9] overflow-hidden"
+          className="bg-white rounded-[24px] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-[#f1f5f9] overflow-hidden relative"
         >
+          {/* Language Selector */}
+          <div className="absolute top-3 right-3 rtl:left-auto rtl:right-3 z-20">
+            <select 
+              value={i18n.language} 
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              className="text-[10px] font-bold text-[#64748b] bg-[#f8fafc] border border-[#e2e8f0] rounded-lg px-2 py-1 outline-none focus:border-[#4f46e5] transition-all cursor-pointer uppercase tracking-wider"
+            >
+              {LANGUAGES.map(l => (
+                <option key={l.value} value={l.value}>{l.label}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Top accent */}
           <div className="h-1.5 w-full bg-gradient-to-r from-[#4f46e5] to-[#6366f1]" />
 
-          <div className="p-8">
+          <div className="pt-12 pb-8 px-8">
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="First Name"
+                  label={t('auth.first_name', 'First Name')}
                   placeholder="Rhea"
                   {...register('firstName')}
                   error={errors.firstName?.message}
                   disabled={isLoading}
                 />
                 <Input
-                  label="Last Name"
+                  label={t('auth.last_name', 'Last Name')}
                   placeholder="Sharma"
                   {...register('lastName')}
                   error={errors.lastName?.message}
@@ -106,7 +122,7 @@ export default function Signup() {
               </div>
 
               <Input
-                label="Email Address"
+                label={t('auth.email')}
                 placeholder="rhea@gmail.com"
                 type="email"
                 {...register('email')}
@@ -115,7 +131,7 @@ export default function Signup() {
               />
 
               <Input
-                label="Mobile Number"
+                label={t('auth.phone')}
                 placeholder="9876543210"
                 {...register('phone')}
                 error={errors.phone?.message}
@@ -125,17 +141,17 @@ export default function Signup() {
               <Button type="submit" className="w-full mt-2 group" isLoading={isLoading} size="md">
                 {!isLoading && (
                   <>
-                    Sign Up
-                    <ArrowRight size={16} className="ml-1.5 group-hover:translate-x-1 transition-transform" />
+                    {t('auth.signup')}
+                    <ArrowRight size={16} className="ms-1.5 rtl:rotate-180 transition-transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
                   </>
                 )}
               </Button>
               
               <div className="text-center mt-2">
                 <p className="text-sm text-[#64748b]">
-                  Already have an account?{' '}
+                  {t('auth.have_account', 'Already have an account?')}{' '}
                   <Link to="/login" className="text-[#4f46e5] font-semibold hover:text-[#4338ca] transition-colors">
-                    Log In
+                    {t('auth.login', 'Log In')}
                   </Link>
                 </p>
               </div>

@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from './components/layout/AppLayout';
+import { LANGUAGES } from './i18n';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Auth/Login';
 import Signup from './pages/Auth/Signup';
@@ -12,6 +15,14 @@ import Feedback from './pages/Feedback';
 import Profile from './pages/Profile';
 
 function App() {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    const currentLang = LANGUAGES.find(l => l.value === i18n.language);
+    document.documentElement.dir = currentLang?.rtl ? 'rtl' : 'ltr';
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -47,5 +58,3 @@ function App() {
 }
 
 export default App;
-
-
