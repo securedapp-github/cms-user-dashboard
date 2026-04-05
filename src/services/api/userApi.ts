@@ -35,6 +35,20 @@ export const userApi = {
     const url = params.toString() ? `/user/consents?${params.toString()}` : `/user/consents`;
     return await api(url);
   },
+  getConsentDetails: async (id: string) => {
+    return await api(`/user/consents/${id}`);
+  },
+  updateConsent: async (id: string, payload: { purpose_id: string; enabled: boolean }) => {
+    return await api(`/user/consents/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  },
+  withdrawConsent: async (id: string) => {
+    return await api(`/user/consents/${id}/withdraw`, {
+      method: 'POST',
+    });
+  },
 
   // 5. Tenants List
   getTenants: async () => {

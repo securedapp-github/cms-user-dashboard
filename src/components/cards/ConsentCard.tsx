@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom';
 import { Badge } from '../ui/Badge';
 import { cn } from '../../utils/cn';
 import { ChevronRight } from 'lucide-react';
 
 interface ConsentCardProps {
   id: string;
+  purposeId?: string;
   tenantAbbr: string;
   tenantName: string;
   appName: string;
@@ -14,10 +14,12 @@ interface ConsentCardProps {
   status: 'Active' | 'Revoked' | 'Expired' | 'Expiring Soon';
   iconBgColor: string;
   iconTextColor: string;
+  onClick: (id: string, purposeId?: string) => void;
 }
 
 export function ConsentCard({
   id,
+  purposeId,
   tenantAbbr,
   tenantName,
   appName,
@@ -26,7 +28,8 @@ export function ConsentCard({
   updatedAt,
   status,
   iconBgColor,
-  iconTextColor
+  iconTextColor,
+  onClick
 }: ConsentCardProps) {
 
   const getBadgeVariant = (s: string): 'active' | 'expired' | 'pending' | 'neutral' | 'info' => {
@@ -40,8 +43,8 @@ export function ConsentCard({
   };
 
   return (
-    <Link 
-      to={`/consents/${id}`}
+    <div 
+      onClick={() => onClick(id, purposeId)}
       className={cn(
         "flex gap-4 p-4 items-center bg-white rounded-[14px]",
         "border border-[#e2e8f0]",
@@ -90,6 +93,6 @@ export function ConsentCard({
         size={16}
         className="text-[#cbd5e1] group-hover:text-[#4f46e5] group-hover:translate-x-0.5 transition-all duration-200 shrink-0"
       />
-    </Link>
+    </div>
   );
 }

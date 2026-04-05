@@ -1,15 +1,30 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Filter, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Filter, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Select } from '../components/ui/Select';
 import { ConsentCard } from '../components/cards/ConsentCard';
 import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Modal } from '../components/ui/Modal';
+import { PurposeDetailModal } from '../components/modals/PurposeDetailModal';
 import { userApi } from '../services/api/userApi';
+import { useToastStore } from '../store/toastStore';
+import type { Purpose, ConsentDetailsData } from '../types/consent';
 
 export default function MyConsents() {
   const [filterTenant, setFilterTenant] = useState('all');
   const [filterApp, setFilterApp] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const { addToast } = useToastStore();
+  
+  // Modal State
+  const [selectedPurpose, setSelectedPurpose] = useState<Purpose | null>(null);
+  const [selectedDetails, setSelectedDetails] = useState<ConsentDetailsData | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   const [consents, setConsents] = useState<any[]>([]);
   const [tenants, setTenants] = useState<{ label: string; value: string }[]>([
@@ -45,15 +60,60 @@ export default function MyConsents() {
   }, [filterTenant]);
 
   // Load Consents based on Filters
-  useEffect(() => {
-    userApi.getConsents({
-      tenant_id: filterTenant !== 'all' ? filterTenant : undefined,
-      app_id: filterApp !== 'all' ? filterApp : undefined,
-      status: filterStatus !== 'all' ? filterStatus.toLowerCase() : undefined,
-    }).then(res => {
+  const fetchConsents = async () => {
+    try {
+      const res = await userApi.getConsents({
+        tenant_id: filterTenant !== 'all' ? filterTenant : undefined,
+        app_id: filterApp !== 'all' ? filterApp : undefined,
+        status: filterStatus !== 'all' ? filterStatus.toLowerCase() : undefined,
+      });
       if (res && res.consents) setConsents(res.consents);
-    }).catch(console.error);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchConsents();
   }, [filterTenant, filterApp, filterStatus]);
+
+  const handleCardClick = async (consentId: string, purposeId?: string) => {
+    setLoadingDetails(true);
+    try {
+      const [consentData, userData] = await Promise.all([
+        userApi.getConsentDetails(consentId),
+        userApi.getUser()
+      ]);
+      
+      setSelectedDetails(consentData);
+      setUserProfile(userData?.user || userData);
+
+      if (purposeId && consentData?.purposes) {
+        const found = consentData.purposes.find((p: any) => p.id === purposeId);
+        if (found) setSelectedPurpose(found);
+      }
+      setIsDetailModalOpen(true);
+    } catch (err: any) {
+      addToast(err.message || 'Failed to load details', 'error');
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!selectedDetails) return;
+    setIsSubmitting(true);
+    try {
+      await userApi.withdrawConsent(selectedDetails.id);
+      addToast('Consent withdrawn completely', 'success');
+      setWithdrawModalOpen(false);
+      fetchConsents(); // Refresh list
+    } catch (err: any) {
+      addToast(err.message || 'Failed to withdraw', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const containerVars = {
     hidden: { opacity: 0 },
@@ -71,6 +131,7 @@ export default function MyConsents() {
 
     return {
       id: c.id,
+      purposeId: c.purpose_id,
       tenantAbbr: c.tenant_name?.substring(0, 2).toUpperCase() || 'GT',
       tenantName: c.tenant_name || 'Unknown Bank',
       appName: c.app_name || 'Unknown App',
@@ -159,7 +220,9 @@ export default function MyConsents() {
                 >
                   <ConsentCard 
                     {...consent} 
+                    purposeId={consent.purposeId}
                     status={consent.status as 'Active' | 'Revoked' | 'Expired' | 'Expiring Soon'}
+                    onClick={handleCardClick}
                   />
                 </motion.div>
               ))
@@ -175,6 +238,65 @@ export default function MyConsents() {
           </div>
         </Card>
       </motion.div>
+
+      {/* Purpose Detail Modal */}
+      <PurposeDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        purpose={selectedPurpose}
+        consent={selectedDetails}
+        user={userProfile}
+        onWithdraw={() => setWithdrawModalOpen(true)}
+      />
+
+      {/* Withdrawal Confirmation Modal */}
+      <Modal
+        isOpen={withdrawModalOpen}
+        onClose={() => !isSubmitting && setWithdrawModalOpen(false)}
+        title="Withdraw All Access"
+      >
+        <div className="flex flex-col gap-6 py-2">
+          <div className="flex gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center shrink-0 shadow-inner">
+              <AlertCircle size={28} />
+            </div>
+            <div className="space-y-2">
+              <p className="text-[#0f172a] font-bold text-base">Confirm total withdrawal?</p>
+              <p className="text-sm text-[#64748b] leading-relaxed">
+                This will immediately stop <span className="font-semibold text-[#0f172a]">{selectedDetails?.fiduciary?.name}</span> from accessing any of your data for <span className="font-semibold text-[#0f172a]">{selectedDetails?.application?.name}</span>.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button variant="ghost" className="rounded-xl px-6" onClick={() => setWithdrawModalOpen(false)} disabled={isSubmitting}>
+              Keep Access
+            </Button>
+            <Button
+              variant="danger"
+              className="rounded-xl px-6 font-bold shadow-lg shadow-red-100"
+              onClick={handleWithdraw}
+              isLoading={isSubmitting}
+            >
+              Confirm Withdrawal
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Global Loading Overlay for Card Clicks */}
+      <AnimatePresence>
+        {loadingDetails && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] bg-white/60 backdrop-blur-md flex flex-col items-center justify-center gap-3"
+          >
+            <div className="w-10 h-10 border-4 border-[#4f46e5]/20 border-t-[#4f46e5] rounded-full animate-spin" />
+            <p className="text-sm font-bold text-[#4f46e5] animate-pulse uppercase tracking-widest">Loading Details...</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

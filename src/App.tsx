@@ -4,7 +4,6 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Auth/Login';
 import Signup from './pages/Auth/Signup';
 import MyConsents from './pages/MyConsents';
-import ConsentDetails from './pages/ConsentDetails';
 import RaiseDSR from './pages/DSR/RaiseDSR';
 import TrackDSR from './pages/DSR/TrackDSR';
 import RaiseGrievance from './pages/Grievance/RaiseGrievance';
@@ -25,7 +24,6 @@ function App() {
           
           <Route path="consents">
             <Route index element={<MyConsents />} />
-            <Route path=":id" element={<ConsentDetails />} />
           </Route>
           
           <Route path="dsr">
