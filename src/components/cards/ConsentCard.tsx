@@ -11,7 +11,7 @@ interface ConsentCardProps {
   title: string;
   purpose: string;
   updatedAt: string;
-  status: 'Active' | 'Revoked' | 'Expired' | 'Expiring Soon';
+  status: 'Active' | 'Revoked' | 'Expired' | 'Expiring Soon' | 'Accepted' | 'Rejected / Withdrawn';
   iconBgColor: string;
   iconTextColor: string;
   onClick: (id: string, purposeId?: string) => void;
@@ -34,8 +34,10 @@ export function ConsentCard({
 
   const getBadgeVariant = (s: string): 'active' | 'expired' | 'pending' | 'neutral' | 'info' => {
     switch (s) {
-      case 'Active':       return 'active';
-      case 'Revoked':      return 'expired';
+      case 'Active':
+      case 'Accepted':       return 'active';
+      case 'Revoked':
+      case 'Rejected / Withdrawn':      return 'expired';
       case 'Expired':      return 'neutral';
       case 'Expiring Soon':return 'pending';
       default:             return 'neutral';

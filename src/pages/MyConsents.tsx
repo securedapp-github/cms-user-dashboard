@@ -108,6 +108,8 @@ export default function MyConsents() {
 
   useEffect(() => {
     fetchConsents();
+    const interval = setInterval(fetchConsents, 10000);
+    return () => clearInterval(interval);
   }, [filterTenant, filterApp, filterStatus, filterPeriod, customDates]);
 
   const handleCardClick = async (consentId: string, purposeId?: string) => {
@@ -171,7 +173,7 @@ export default function MyConsents() {
       title: c.purpose_name || 'Consent Granted',
       purpose: c.description || 'Data sharing agreement',
       updatedAt: new Date(c.updated_at).toLocaleString(),
-      status: lowerStatus === 'expiring_soon' ? 'Expiring Soon' : lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1),
+      status: lowerStatus === 'active' ? 'Accepted' : lowerStatus === 'revoked' ? 'Rejected / Withdrawn' : lowerStatus === 'expiring_soon' ? 'Expiring Soon' : lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1),
       iconBgColor: isActive ? 'bg-emerald-100' : isPending ? 'bg-amber-100' : 'bg-red-100',
       iconTextColor: isActive ? 'text-emerald-700' : isPending ? 'text-amber-700' : 'text-red-700',
     };
@@ -222,8 +224,8 @@ export default function MyConsents() {
               onChange={(e) => setFilterStatus(e.target.value)}
               options={[
                 { label: 'All Statuses', value: 'all' },
-                { label: 'Active', value: 'active' },
-                { label: 'Revoked', value: 'revoked' },
+                { label: 'Accepted Only', value: 'active' },
+                { label: 'Rejected Only', value: 'revoked' },
                 { label: 'Expired', value: 'expired' },
               ]}
             />

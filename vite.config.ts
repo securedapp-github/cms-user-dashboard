@@ -8,8 +8,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/user': {
-        //target: 'http://localhost:3000',
-        target: 'https://cmsbe.securedapp.io',
+        target: 'http://localhost:3000',
+        //target: 'https://cmsbe.securedapp.io',
         changeOrigin: true,
       },
     },

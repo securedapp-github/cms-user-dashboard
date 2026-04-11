@@ -33,6 +33,8 @@ export default function Dashboard() {
       }
     };
     fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, [setUser, setSummary, setConsents]);
 
   const userName = user?.email ? user.email.split('@')[0] : 'User';
@@ -60,7 +62,7 @@ export default function Dashboard() {
       title: c.purpose_name || "Consent Given",
       desc: c.app_name || c.tenant_name || "Unknown Application",
       time: new Date(c.updated_at).toLocaleString(),
-      status: lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1),
+      status: lowerStatus === 'active' ? 'Accepted' : lowerStatus === 'revoked' ? 'Rejected / Withdrawn' : lowerStatus === 'expiring_soon' ? 'Expiring Soon' : lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1),
       badgeVariant: isActive ? 'active' : (isPending ? 'pending' : 'expired'),
       icon: isActive ? <ShieldCheck size={17} className="text-emerald-600" /> : 
             isPending ? <FileClock size={17} className="text-amber-600" /> : 
@@ -115,7 +117,7 @@ export default function Dashboard() {
         
         <motion.div variants={itemVars}>
           <StatCard
-            title="Active Consents"
+            title="Accepted Consents"
             value={summary?.active?.toString() || "0"}
             meta="Healthy status"
             metaType="success"

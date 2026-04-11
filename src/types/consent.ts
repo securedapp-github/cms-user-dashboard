@@ -3,6 +3,7 @@ export interface Purpose {
   name: string;
   description: string;
   enabled: boolean;
+  status?: 'granted' | 'rejected';
   required: boolean;
   data_items: string[];
 }
