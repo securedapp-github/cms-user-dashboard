@@ -5,52 +5,45 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { cn } from '../../utils/cn';
 
-const TICKETS = [
-  {
-    id: 'GR-933',
-    title: 'Unauthorized Third-Party Sharing',
-    tenant: 'FinTech App XYZ',
-    category: 'Data Sharing',
-    status: 'Investigating',
-    badgeVariant: 'expired' as const,
-    reported: 'March 20, 2026',
-    lastUpdate: 'Yesterday, 5:44 PM',
-    escalated: true,
-    icon: <AlertCircle size={18} />,
-    iconBg: 'bg-red-50 text-red-500',
-    accentColor: 'bg-red-500',
-  },
-  {
-    id: 'GR-992',
-    title: 'Consent Violation — Data used without permission',
-    tenant: 'Global Trust Bank',
-    category: 'Consent',
-    status: 'Pending Review',
-    badgeVariant: 'pending' as const,
-    reported: 'Just Now',
-    lastUpdate: 'Just Now',
-    escalated: false,
-    icon: <Clock size={18} />,
-    iconBg: 'bg-amber-50 text-amber-500',
-    accentColor: 'bg-amber-500',
-  },
-  {
-    id: 'GR-312',
-    title: 'Inaccurate Processing / Error',
-    tenant: 'ShopEasy Commerce',
-    category: 'Data Quality',
-    status: 'Resolved',
-    badgeVariant: 'active' as const,
-    reported: 'Jan 10, 2026',
-    lastUpdate: 'Corrected Data Profile',
-    escalated: false,
-    icon: <CheckCircle2 size={18} />,
-    iconBg: 'bg-emerald-50 text-emerald-500',
-    accentColor: 'bg-emerald-500',
-  },
-] as const;
+import { useState, useEffect } from 'react';
+import { userApi } from '../../services/api/userApi';
 
 export default function GrievanceHistory() {
+  const [tickets, setTickets] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        const res = await userApi.getGrievances();
+        if (res && res.grievances) {
+          const mapped = res.grievances.map((g: any) => {
+            const isEscalated = g.status === 'ESCALATED';
+            const isResolved = g.status === 'RESOLVED';
+            const isPending = g.status === 'PENDING' || g.status === 'OPEN';
+
+            return {
+              id: g.id,
+              title: g.description?.length > 40 ? g.description.substring(0, 40) + '...' : g.description || g.category,
+              tenant: g.Tenant?.name || 'Unknown Organisation',
+              category: g.category,
+              status: g.status.charAt(0) + g.status.slice(1).toLowerCase(),
+              badgeVariant: isResolved ? 'active' : (isEscalated ? 'expired' : 'pending'),
+              reported: new Date(g.created_at).toLocaleDateString(),
+              lastUpdate: new Date(g.updated_at).toLocaleDateString(),
+              escalated: isEscalated,
+              icon: isResolved ? <CheckCircle2 size={18} /> : (isEscalated ? <AlertCircle size={18} /> : <Clock size={18} />),
+              iconBg: isResolved ? 'bg-emerald-50 text-emerald-500' : (isEscalated ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-500'),
+              accentColor: isResolved ? 'bg-emerald-500' : (isEscalated ? 'bg-red-500' : 'bg-amber-500'),
+            };
+          });
+          setTickets(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to fetch grievances:", err);
+      }
+    };
+    fetchTickets();
+  }, []);
   return (
     <div className="max-w-4xl mx-auto space-y-5">
       {/* Header */}
@@ -65,7 +58,7 @@ export default function GrievanceHistory() {
             <h2 className="text-xl font-bold text-[#0f172a] tracking-tight flex items-center gap-2">
               Grievance Tickets
               <span className="text-xs font-semibold bg-[#f1f5f9] text-[#64748b] px-2 py-0.5 rounded-full">
-                {TICKETS.length} Total
+                {tickets.length} Total
               </span>
             </h2>
             <p className="text-sm text-[#64748b] mt-0.5">Track status of your grievance submissions.</p>
@@ -85,7 +78,12 @@ export default function GrievanceHistory() {
         animate={{ opacity: 1 }}
         className="space-y-3"
       >
-        {TICKETS.map((ticket, index) => (
+        {tickets.length === 0 && (
+          <div className="bg-white rounded-[16px] border border-[#e2e8f0] p-8 text-center text-[#64748b]">
+            No grievances yet.
+          </div>
+        )}
+        {tickets.map((ticket, index) => (
           <motion.div
             key={ticket.id}
             initial={{ opacity: 0, y: 10 }}
@@ -121,7 +119,7 @@ export default function GrievanceHistory() {
                         {ticket.title}
                       </h3>
                       <p className="text-xs text-[#94a3b8] mt-0.5 font-medium">
-                        #{ticket.id} · {ticket.tenant} · {ticket.category}
+                        #{ticket.id.substring(0, 8)} · {ticket.tenant} · {ticket.category}
                       </p>
                     </div>
                     <div className="flex flex-col items-start sm:items-end gap-1.5 shrink-0">

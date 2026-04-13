@@ -81,4 +81,20 @@ export const userApi = {
       body: JSON.stringify(payload),
     });
   },
+
+  // 9. Activity Logs
+  getLogs: async (limit: number = 50) => {
+    return await api(`/user/logs?limit=${limit}`);
+  },
+
+  // 10. Grievances
+  getGrievances: async () => {
+    return await api('/user/grievances');
+  },
+  createGrievance: async (payload: { tenant_id: string; category: string; description: string }) => {
+    return await api('/user/grievance', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
 };

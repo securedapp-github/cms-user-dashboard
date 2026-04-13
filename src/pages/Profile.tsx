@@ -12,44 +12,10 @@ import { Select } from '../components/ui/Select';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
 import { cn } from '../utils/cn';
+import { userApi } from '../services/api/userApi';
+import { useEffect } from 'react';
 
-const SECURITY_LOGS = [
-  {
-    id: 1,
-    title: 'Logged In',
-    desc: 'Successful authentication via Mobile OTP. Device: Mac OS X.',
-    date: 'Today, 11:30 AM',
-    status: 'success'
-  },
-  {
-    id: 2,
-    title: 'Consent Preferences Updated',
-    desc: "Turned OFF 'Analytics' data sharing for Global Trust Bank.",
-    date: 'Today, 10:45 AM',
-    status: 'neutral'
-  },
-  {
-    id: 3,
-    title: 'DSR Raised',
-    desc: 'Requested data erasure (ID: DSR-4093) from FinTech App XYZ.',
-    date: 'Yesterday, 14:30 PM',
-    status: 'neutral'
-  },
-  {
-    id: 4,
-    title: 'Language Updated',
-    desc: "Set preferred digital communication language to 'English'.",
-    date: 'March 20, 2026, 09:15 AM',
-    status: 'neutral'
-  },
-  {
-    id: 5,
-    title: 'Passwordless Auth Setup',
-    desc: 'Linked +91 98*** **892 explicitly for OTP based secure sessions.',
-    date: 'March 10, 2026, 12:00 PM',
-    status: 'neutral'
-  }
-];
+// Dynamically fetched logs instead of hardcoded
 
 function ReadonlyField({
   label, value, icon, mono = false
@@ -82,6 +48,84 @@ export default function Profile() {
     await new Promise(res => setTimeout(res, 800));
     setIsSaving(false);
     addToast(t('profile.save_success', 'Preferences Saved Successfully!'), 'success');
+  };
+
+  const [logs, setLogs] = useState<any[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(true);
+
+  const fetchLogs = async () => {
+    try {
+      const res = await userApi.getLogs();
+      console.log('Activity Logs API Response:', res);
+      if (res && res.logs) {
+        setLogs(res.logs);
+      }
+    } catch (err) {
+      console.error('Failed to fetch logs:', err);
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatLogTitle = (action: string) => {
+    switch(action) {
+      case 'USER_LOGIN': return 'Logged In';
+      case 'LANGUAGE_UPDATED': return 'Language Updated';
+      case 'CONSENT_GRANTED': return 'Consent Granted';
+      case 'CONSENT_WITHDRAWN': return 'Consent Withdrawn';
+      case 'DSR_CREATED': return 'DSR Request Created';
+      case 'GRIEVANCE_CREATED': return 'Grievance Submitted';
+      default: return action.replace(/_/g, ' ');
+    }
+  };
+
+  const formatLogDesc = (log: any) => {
+    switch(log.action) {
+      case 'USER_LOGIN':
+        return `Successful authentication via ${log.metadata?.method?.toUpperCase() || 'Portal'}.`;
+      case 'LANGUAGE_UPDATED':
+        return `Set preferred digital communication language to '${log.metadata?.language || 'English'}'.`;
+      case 'CONSENT_GRANTED':
+        return `Granted access for '${log.metadata?.purpose_name || 'Data Processing'}'.`;
+      case 'CONSENT_WITHDRAWN':
+        return `Withdrew access for '${log.metadata?.purpose_name || 'Data Processing'}'.`;
+      case 'DSR_CREATED':
+        return `Requested data ${log.metadata?.request_type || 'access'}.`;
+      case 'GRIEVANCE_CREATED':
+        return `Ticket raised for: ${log.metadata?.category || 'Issue'}.`;
+      default:
+        return 'System action logged.';
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (!logs.length) {
+      addToast('No logs available to export.', 'error');
+      return;
+    }
+    const headers = ['Date', 'Action', 'Description'];
+    const csvContent = [
+      headers.join(','),
+      ...logs.map(log => 
+        `"${new Date(log.created_at).toLocaleString()}","${formatLogTitle(log.action)}","${formatLogDesc(log).replace(/"/g, '""')}"`
+      )
+    ].join('\\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `activity_logs_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    addToast('Logs exported successfully.', 'success');
   };
 
   return (
@@ -224,7 +268,7 @@ export default function Profile() {
                   variant="outline"
                   size="sm"
                   className="hidden sm:flex"
-                  onClick={() => addToast('Exporting CSV...', 'info')}
+                  onClick={handleExportCSV}
                 >
                   <Download size={13} className="mr-1.5" />
                   Export CSV
@@ -236,29 +280,48 @@ export default function Profile() {
                   {/* Timeline line */}
                   <div className="absolute left-[7px] top-0 bottom-0 w-px bg-[#e2e8f0]" />
 
-                  {SECURITY_LOGS.map((log, i) => (
-                    <motion.div
-                      key={log.id}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: i * 0.06 }}
-                      className="relative pl-7 group"
-                    >
-                      {/* Timeline dot */}
-                      <span className={cn(
-                        "absolute left-0 top-1 w-[15px] h-[15px] rounded-full border-2 border-white shadow-sm transition-all duration-200",
-                        log.status === 'success'
-                          ? 'bg-emerald-500 group-hover:shadow-[0_0_0_3px_rgba(34,197,94,0.2)]'
-                          : 'bg-[#cbd5e1] group-hover:bg-[#4f46e5] group-hover:shadow-[0_0_0_3px_rgba(79,70,229,0.2)]'
-                      )} />
+                  {isLoadingLogs ? (
+                    <div className="flex justify-center items-center py-10">
+                      <div className="w-8 h-8 border-4 border-[#4f46e5]/20 border-t-[#4f46e5] rounded-full animate-spin" />
+                    </div>
+                  ) : logs.length === 0 ? (
+                    <div className="text-center py-10">
+                      <p className="text-sm font-semibold text-[#64748b]">No activity yet</p>
+                      <p className="text-xs text-[#94a3b8] mt-1">Your recent interactions will appear here.</p>
+                    </div>
+                  ) : (
+                    logs.map((log, i) => {
+                      const isSuccess = log.action === 'USER_LOGIN';
+                      return (
+                        <motion.div
+                          key={log.id}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: i * 0.05 }}
+                          className="relative pl-7 group"
+                        >
+                          {/* Timeline dot */}
+                          <span className={cn(
+                            "absolute left-0 top-1 w-[15px] h-[15px] rounded-full border-2 border-white shadow-sm transition-all duration-200",
+                            isSuccess
+                              ? 'bg-emerald-500 group-hover:shadow-[0_0_0_3px_rgba(34,197,94,0.2)]'
+                              : 'bg-[#cbd5e1] group-hover:bg-[#4f46e5] group-hover:shadow-[0_0_0_3px_rgba(79,70,229,0.2)]'
+                          )} />
 
-                      <p className="text-[11px] font-semibold text-[#94a3b8] mb-1 uppercase tracking-wide">{log.date}</p>
-                      <p className="font-bold text-sm text-[#0f172a] mb-1">{log.title}</p>
-                      <div className="text-xs text-[#64748b] leading-relaxed bg-[#f8fafc] rounded-[10px] px-3.5 py-3 border border-[#e2e8f0] group-hover:border-[#c7d2fe] group-hover:bg-[#eef2ff]/40 transition-all duration-200">
-                        {log.desc}
-                      </div>
-                    </motion.div>
-                  ))}
+                          <p className="text-[11px] font-semibold text-[#94a3b8] mb-1 uppercase tracking-wide">
+                            {new Date(log.created_at).toLocaleString(undefined, {
+                              year: 'numeric', month: 'short', day: 'numeric',
+                              hour: '2-digit', minute: '2-digit'
+                            })}
+                          </p>
+                          <p className="font-bold text-sm text-[#0f172a] mb-1">{formatLogTitle(log.action)}</p>
+                          <div className="text-xs text-[#64748b] leading-relaxed bg-[#f8fafc] rounded-[10px] px-3.5 py-3 border border-[#e2e8f0] group-hover:border-[#c7d2fe] group-hover:bg-[#eef2ff]/40 transition-all duration-200">
+                            {formatLogDesc(log)}
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </Card>

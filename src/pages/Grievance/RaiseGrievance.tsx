@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { FileUpload } from '../../components/ui/FileUpload';
 import { useToastStore } from '../../store/toastStore';
+import { userApi } from '../../services/api/userApi';
 
 const grievanceSchema = z.object({
   tenant:      z.string().min(1, 'Please select a tenant'),
@@ -35,16 +36,33 @@ export default function RaiseGrievance() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [_file, setFile] = useState<File | null>(null);
 
+  const [tenants, setTenants] = useState<any[]>([]);
+
+  useEffect(() => {
+    userApi.getTenants().then(res => {
+      if (res && res.tenants) setTenants(res.tenants);
+    }).catch(console.error);
+  }, []);
+
   const { register, handleSubmit, formState: { errors } } = useForm<GrievanceForm>({
     resolver: zodResolver(grievanceSchema)
   });
 
-  const onSubmit = async (_data: GrievanceForm) => {
+  const onSubmit = async (data: GrievanceForm) => {
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    addToast('Ticket GR-992 Filed Successfully!', 'success');
-    navigate('/grievance/history');
+    try {
+      await userApi.createGrievance({
+        tenant_id: data.tenant,
+        category: data.category,
+        description: data.description,
+      });
+      addToast('Grievance Filed Successfully!', 'success');
+      navigate('/grievance/history');
+    } catch (err: any) {
+      addToast(err.message || 'Failed to file grievance', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClass = (hasError: boolean) => [
@@ -100,10 +118,9 @@ export default function RaiseGrievance() {
               <SectionLabel icon={<Building2 size={13} />} label="Involved Organisation" />
               <select {...register('tenant')} className={inputClass(!!errors.tenant)}>
                 <option value="">— Select Organisation —</option>
-                <option value="Global Trust Bank">Global Trust Bank</option>
-                <option value="FinTech App XYZ">FinTech App XYZ</option>
-                <option value="ShopEasy Commerce">ShopEasy Commerce</option>
-                <option value="other">Other / Unknown</option>
+                {tenants.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
               </select>
               {errMsg(errors.tenant?.message)}
             </div>

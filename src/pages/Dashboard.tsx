@@ -11,23 +11,27 @@ import { cn } from '../utils/cn';
 import { useAuthStore } from '../store/authStore';
 import { useUserStore } from '../store/userStore';
 import { userApi } from '../services/api/userApi';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
   const { summary, consents, setSummary, setConsents, setUser } = useUserStore();
 
+  const [logs, setLogs] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [meRes, sumRes, consRes] = await Promise.all([
+        const [meRes, sumRes, consRes, logsRes] = await Promise.all([
           userApi.getUser(),
           userApi.getSummary(),
-          userApi.getConsents()
+          userApi.getConsents(),
+          userApi.getLogs(10)
         ]);
         if(meRes) setUser(meRes);
         if(sumRes) setSummary(sumRes);
         if(consRes && consRes.consents) setConsents(consRes.consents);
+        if(logsRes && logsRes.logs) setLogs(logsRes.logs);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
       }
@@ -52,26 +56,62 @@ export default function Dashboard() {
     show: { opacity: 1, y: 0, transition: { type: 'spring' as const, duration: 0.5, bounce: 0.2 } }
   } as const;
 
-  const activities = consents.slice(0, 5).map(c => {
-    const lowerStatus = c.status?.toLowerCase() || '';
-    const isActive = lowerStatus === 'active';
-    const isPending = lowerStatus === 'pending' || lowerStatus === 'expiring_soon';
+  const activities = logs.slice(0, 5).map((log: any) => {
+    const action = log.action || '';
+    const isConsent = action.includes('CONSENT');
+    const isDSR = action.includes('DSR');
+    const isGrievance = action.includes('GRIEVANCE');
     
+    let title = action.replace(/_/g, ' ');
+    let status = 'Action Logged';
+    let badgeVariant = 'pending';
+    let icon = <FileText size={17} className="text-gray-500" />;
+    let iconBg = 'bg-gray-50 text-gray-500';
+
+    if (isConsent) {
+      const purposeName = log.metadata?.purpose_name || log.metadata?.app_name || 'Consent';
+      if(action.includes('WITHDRAW') || action.includes('REVOKE')) {
+        status = 'Rejected / Withdrawn';
+        badgeVariant = 'expired';
+        icon = <XCircle size={17} className="text-red-500" />;
+        iconBg = 'bg-red-50 text-red-500';
+        title = `${purposeName} Withdrawn`;
+      } else {
+        status = 'Accepted';
+        badgeVariant = 'active';
+        icon = <ShieldCheck size={17} className="text-emerald-600" />;
+        iconBg = 'bg-emerald-50 text-emerald-600';
+        title = `${purposeName} Accepted`;
+      }
+    } else if (isDSR) {
+      status = 'Pending';
+      badgeVariant = 'pending';
+      icon = <FileClock size={17} className="text-amber-600" />;
+      iconBg = 'bg-amber-50 text-amber-600';
+      title = 'DSR Request: ' + (log.metadata?.request_type || 'Privacy Data');
+    } else if (isGrievance) {
+      status = 'Open';
+      badgeVariant = 'expired';
+      icon = <AlertCircle size={17} className="text-red-500" />;
+      iconBg = 'bg-red-50 text-red-500';
+      title = 'Grievance: ' + (log.metadata?.category || 'Issue Reported');
+    }
+
     return {
-      id: c.id,
-      title: c.purpose_name || "Consent Given",
-      desc: c.app_name || c.tenant_name || "Unknown Application",
-      time: new Date(c.updated_at).toLocaleString(),
-      status: lowerStatus === 'active' ? 'Accepted' : lowerStatus === 'revoked' ? 'Rejected / Withdrawn' : lowerStatus === 'expiring_soon' ? 'Expiring Soon' : lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1),
-      badgeVariant: isActive ? 'active' : (isPending ? 'pending' : 'expired'),
-      icon: isActive ? <ShieldCheck size={17} className="text-emerald-600" /> : 
-            isPending ? <FileClock size={17} className="text-amber-600" /> : 
-            <XCircle size={17} className="text-red-500" />,
-      iconBg: isActive ? 'bg-emerald-50 text-emerald-600' : 
-              isPending ? 'bg-amber-50 text-amber-600' : 
-              'bg-red-50 text-red-500',
+      id: log.id,
+      title,
+      desc: log.tenant_id ? `Tenant ${log.tenant_id.substring(0,8)}` : "System",
+      time: new Date(log.created_at).toLocaleString(),
+      status,
+      badgeVariant,
+      icon,
+      iconBg,
     };
   });
+
+  const expiringConsents = consents.filter(c => c.status === 'expiring_soon' || (c.expires_at && new Date(c.expires_at).getTime() < Date.now() + 7*24*60*60*1000));
+  const alertsCount = expiringConsents.length + (summary?.dsr_pending ? 1 : 0);
+
 
   return (
     <motion.div 
@@ -211,38 +251,39 @@ export default function Dashboard() {
             <div className="px-5 py-4 border-b border-[#f1f5f9] flex items-center gap-2 shrink-0">
               <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-amber-400 to-orange-500" />
               <h3 className="font-semibold text-[#0f172a] text-[15px]">Alerts</h3>
-              <span className="ml-auto w-5 h-5 rounded-full bg-[#fef3c7] text-amber-700 text-[10px] font-bold flex items-center justify-center">2</span>
-            </div>
-            <div className="p-4 flex flex-col gap-3 flex-1">
-              
-              {/* Warning alert */}
-              <div className="relative rounded-[12px] p-4 bg-[#fffbeb] border-l-[3px] border-amber-400 overflow-hidden">
-                <div className="flex gap-3">
-                  <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-sm text-amber-900 mb-0.5">Consent Expiring Soon</h4>
-                    <p className="text-xs text-amber-700 mb-2 leading-relaxed">
-                      Your consent for <span className="font-semibold">'Health Plus App'</span> expires in 3 days.
-                    </p>
-                    <button className="text-[11px] font-bold text-amber-700 hover:text-amber-900 underline underline-offset-2 hover:no-underline transition-all">
-                      Review Consent →
-                    </button>
+              {alertsCount === 0 && (
+                <p className="text-sm text-gray-500 text-center py-4">No new alerts at this time.</p>
+              )}
+              {expiringConsents.map((c, idx) => (
+                <div key={`exp-${c.id}-${idx}`} className="relative rounded-[12px] p-4 bg-[#fffbeb] border-l-[3px] border-amber-400 overflow-hidden">
+                  <div className="flex gap-3">
+                    <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-sm text-amber-900 mb-0.5">Consent Expiring Soon</h4>
+                      <p className="text-xs text-amber-700 mb-2 leading-relaxed">
+                        Your consent for <span className="font-semibold">{c.tenant_name || 'an application'}</span> expires soon.
+                      </p>
+                      <button className="text-[11px] font-bold text-amber-700 hover:text-amber-900 underline underline-offset-2 hover:no-underline transition-all">
+                        Review Consent →
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
 
-              {/* Info alert */}
-              <div className="relative rounded-[12px] p-4 bg-[#eff6ff] border-l-[3px] border-blue-400 overflow-hidden">
-                <div className="flex gap-3">
-                  <Bell size={18} className="text-blue-500 shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-sm text-blue-900 mb-0.5">Policy Updated</h4>
-                    <p className="text-xs text-blue-700 leading-relaxed">
-                      Global Trust Bank has updated its data usage policy.
-                    </p>
+              {summary?.dsr_pending ? (
+                <div className="relative rounded-[12px] p-4 bg-[#eff6ff] border-l-[3px] border-blue-400 overflow-hidden">
+                  <div className="flex gap-3">
+                    <Bell size={18} className="text-blue-500 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-sm text-blue-900 mb-0.5">DSR In Progress</h4>
+                      <p className="text-xs text-blue-700 leading-relaxed">
+                        You have {summary.dsr_pending} active DSR request(s) being processed.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : null}
 
             </div>
           </Card>

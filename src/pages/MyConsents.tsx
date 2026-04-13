@@ -28,6 +28,13 @@ export default function MyConsents() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
+  // Track which specific consent record (purpose) is being withdrawn
+  const [activeWithdrawConsent, setActiveWithdrawConsent] = useState<{
+    id: string;
+    purposeName: string;
+    fiduciary: string;
+  } | null>(null);
+
   const [consents, setConsents] = useState<any[]>([]);
   const [tenants, setTenants] = useState<{ label: string; value: string }[]>([
     { label: 'All Banks / Tenants', value: 'all' }
@@ -61,7 +68,6 @@ export default function MyConsents() {
     }
   }, [filterTenant]);
 
-  // Load Consents based on Filters
   const fetchConsents = async () => {
     try {
       let startDate: string | undefined;
@@ -123,9 +129,12 @@ export default function MyConsents() {
       setSelectedDetails(consentData);
       setUserProfile(userData?.user || userData);
 
-      if (purposeId && consentData?.purposes) {
-        const found = consentData.purposes.find((p: any) => p.id === purposeId);
-        if (found) setSelectedPurpose(found);
+      if (consentData?.purposes?.length > 0) {
+        // Find by purposeId if provided, otherwise use first
+        const found = purposeId
+          ? consentData.purposes.find((p: any) => p.id === purposeId) || consentData.purposes[0]
+          : consentData.purposes[0];
+        setSelectedPurpose(found);
       }
       setIsDetailModalOpen(true);
     } catch (err: any) {
@@ -135,14 +144,26 @@ export default function MyConsents() {
     }
   };
 
-  const handleWithdraw = async () => {
+  const handleInitiateWithdraw = () => {
     if (!selectedDetails) return;
+    setActiveWithdrawConsent({
+      id: selectedDetails.id,
+      purposeName: selectedPurpose?.name || selectedDetails?.purposes?.[0]?.name || 'this consent',
+      fiduciary: selectedDetails?.fiduciary?.name || 'Unknown Institution',
+    });
+    setIsDetailModalOpen(false);
+    setWithdrawModalOpen(true);
+  };
+
+  const handleWithdraw = async () => {
+    if (!activeWithdrawConsent) return;
     setIsSubmitting(true);
     try {
-      await userApi.withdrawConsent(selectedDetails.id);
-      addToast('Consent withdrawn completely', 'success');
+      await userApi.withdrawConsent(activeWithdrawConsent.id);
+      addToast(`Consent withdrawn for "${activeWithdrawConsent.purposeName}"`, 'success');
       setWithdrawModalOpen(false);
-      fetchConsents(); // Refresh list
+      setActiveWithdrawConsent(null);
+      fetchConsents();
     } catch (err: any) {
       addToast(err.message || 'Failed to withdraw', 'error');
     } finally {
@@ -173,7 +194,13 @@ export default function MyConsents() {
       title: c.purpose_name || 'Consent Granted',
       purpose: c.description || 'Data sharing agreement',
       updatedAt: new Date(c.updated_at).toLocaleString(),
-      status: lowerStatus === 'active' ? 'Accepted' : lowerStatus === 'revoked' ? 'Rejected / Withdrawn' : lowerStatus === 'expiring_soon' ? 'Expiring Soon' : lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1),
+      status: isActive
+        ? 'Accepted'
+        : lowerStatus === 'revoked'
+        ? 'Rejected / Withdrawn'
+        : lowerStatus === 'expiring_soon'
+        ? 'Expiring Soon'
+        : lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1),
       iconBgColor: isActive ? 'bg-emerald-100' : isPending ? 'bg-amber-100' : 'bg-red-100',
       iconTextColor: isActive ? 'text-emerald-700' : isPending ? 'text-amber-700' : 'text-red-700',
     };
@@ -279,7 +306,7 @@ export default function MyConsents() {
           <div className="px-5 py-4 border-b border-[#f1f5f9] flex items-center gap-2">
             <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-[#4f46e5] to-[#6366f1]" />
             <h3 className="font-semibold text-[#0f172a] text-[15px]">
-              {mappedConsents.length} Consent{mappedConsents.length !== 1 ? 's' : ''} Found
+              {mappedConsents.length} Consent Record{mappedConsents.length !== 1 ? 's' : ''} Found
             </h3>
           </div>
 
@@ -297,7 +324,7 @@ export default function MyConsents() {
                   <ConsentCard 
                     {...consent} 
                     purposeId={consent.purposeId}
-                    status={consent.status as 'Active' | 'Revoked' | 'Expired' | 'Expiring Soon'}
+                    status={consent.status as any}
                     onClick={handleCardClick}
                   />
                 </motion.div>
@@ -322,14 +349,14 @@ export default function MyConsents() {
         purpose={selectedPurpose}
         consent={selectedDetails}
         user={userProfile}
-        onWithdraw={() => setWithdrawModalOpen(true)}
+        onWithdraw={handleInitiateWithdraw}
       />
 
-      {/* Withdrawal Confirmation Modal */}
+      {/* Withdrawal Confirmation Modal — purpose-specific */}
       <Modal
         isOpen={withdrawModalOpen}
         onClose={() => !isSubmitting && setWithdrawModalOpen(false)}
-        title="Withdraw Access"
+        title="Withdraw Consent"
       >
         <div className="flex flex-col gap-6 py-2">
           <div className="flex gap-5">
@@ -339,12 +366,21 @@ export default function MyConsents() {
             <div className="space-y-2">
               <p className="text-[#0f172a] font-bold text-base">Confirm withdrawal?</p>
               <p className="text-sm text-[#64748b] leading-relaxed">
-                This will immediately stop <span className="font-semibold text-[#0f172a]">{selectedDetails?.fiduciary?.name}</span> from accessing your data for the purpose of <span className="font-semibold text-[#0f172a]">{selectedPurpose?.name}</span>.
+                This will immediately revoke{' '}
+                <span className="font-semibold text-[#0f172a]">{activeWithdrawConsent?.fiduciary}</span>'s
+                access for the purpose of{' '}
+                <span className="font-semibold text-[#0f172a]">"{activeWithdrawConsent?.purposeName}"</span>.
+                Other consents you've granted will <span className="font-semibold text-[#0f172a]">not</span> be affected.
               </p>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <Button variant="ghost" className="rounded-xl px-6" onClick={() => setWithdrawModalOpen(false)} disabled={isSubmitting}>
+            <Button
+              variant="ghost"
+              className="rounded-xl px-6"
+              onClick={() => setWithdrawModalOpen(false)}
+              disabled={isSubmitting}
+            >
               Keep Access
             </Button>
             <Button
@@ -359,7 +395,7 @@ export default function MyConsents() {
         </div>
       </Modal>
 
-      {/* Global Loading Overlay for Card Clicks */}
+      {/* Global Loading Overlay */}
       <AnimatePresence>
         {loadingDetails && (
           <motion.div 
