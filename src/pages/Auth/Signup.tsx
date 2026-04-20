@@ -12,17 +12,18 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { LANGUAGES } from '../../i18n';
 
-const signupSchema = z.object({
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(1, 'Last name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits').max(15, 'Phone number too long'),
-});
-
-type SignupForm = z.infer<typeof signupSchema>;
-
 export default function Signup() {
   const { t, i18n } = useTranslation();
+
+  const signupSchema = z.object({
+    firstName: z.string().min(2, t('auth.validation.first_name_min')),
+    lastName: z.string().min(1, t('auth.validation.last_name_min')),
+    email: z.string().email(t('auth.validation.email_invalid')),
+    phone: z.string().min(10, t('auth.validation.phone_invalid')).max(15, t('auth.validation.phone_too_long')),
+  });
+
+  type SignupForm = z.infer<typeof signupSchema>;
+
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { setSignupData } = useAuthStore();
@@ -41,12 +42,12 @@ export default function Signup() {
       // Store signup data globally
       setSignupData(data);
       
-      addToast('Profile created! Now verify your mobile/email.', 'success');
+      addToast(t('auth.signup_success'), 'success');
       
       // Redirect to login (OTP page)
       navigate('/login');
     } catch (err: any) {
-      addToast('Failed to create account. Please try again.', 'error');
+      addToast(t('auth.signup_error'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -106,14 +107,14 @@ export default function Signup() {
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label={t('auth.first_name', 'First Name')}
+                  label={t('auth.first_name')}
                   placeholder="Rhea"
                   {...register('firstName')}
                   error={errors.firstName?.message}
                   disabled={isLoading}
                 />
                 <Input
-                  label={t('auth.last_name', 'Last Name')}
+                  label={t('auth.last_name')}
                   placeholder="Sharma"
                   {...register('lastName')}
                   error={errors.lastName?.message}
@@ -149,9 +150,9 @@ export default function Signup() {
               
               <div className="text-center mt-2">
                 <p className="text-sm text-[#64748b]">
-                  {t('auth.have_account', 'Already have an account?')}{' '}
+                  {t('auth.have_account')}{' '}
                   <Link to="/login" className="text-[#4f46e5] font-semibold hover:text-[#4338ca] transition-colors">
-                    {t('auth.login', 'Log In')}
+                    {t('auth.login')}
                   </Link>
                 </p>
               </div>
@@ -161,7 +162,7 @@ export default function Signup() {
 
         {/* Footer note */}
         <p className="text-center text-[11px] text-[#94a3b8] mt-8 uppercase tracking-widest font-medium opacity-60">
-          🔒 Enterprise Grade Privacy Protection
+          {t('auth.privacy_enterprise')}
         </p>
       </div>
     </div>

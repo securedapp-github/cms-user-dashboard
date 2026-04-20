@@ -38,16 +38,22 @@ function ReadonlyField({
 
 export default function Profile() {
   const { t, i18n } = useTranslation();
-  const { email: storeEmail, phone_number: storePhone, user } = useAuthStore();
+  const { email: storeEmail, phone_number: storePhone, user, setLanguage } = useAuthStore();
   const { addToast } = useToastStore();
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    await new Promise(res => setTimeout(res, 800));
-    setIsSaving(false);
-    addToast(t('profile.save_success', 'Preferences Saved Successfully!'), 'success');
+    try {
+      await userApi.updateSettings({ preferred_language: i18n.language });
+      setLanguage(i18n.language);
+      addToast(t('profile.save_success'), 'success');
+    } catch (err: any) {
+      addToast(err.message || t('common.error'), 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const [logs, setLogs] = useState<any[]>([]);
@@ -56,7 +62,6 @@ export default function Profile() {
   const fetchLogs = async () => {
     try {
       const res = await userApi.getLogs();
-      console.log('Activity Logs API Response:', res);
       if (res && res.logs) {
         setLogs(res.logs);
       }
@@ -74,48 +79,43 @@ export default function Profile() {
   }, []);
 
   const formatLogTitle = (action: string) => {
-    switch(action) {
-      case 'USER_LOGIN': return 'Logged In';
-      case 'LANGUAGE_UPDATED': return 'Language Updated';
-      case 'CONSENT_GRANTED': return 'Consent Granted';
-      case 'CONSENT_WITHDRAWN': return 'Consent Withdrawn';
-      case 'DSR_CREATED': return 'DSR Request Created';
-      case 'GRIEVANCE_CREATED': return 'Grievance Submitted';
-      default: return action.replace(/_/g, ' ');
-    }
+    return t(`logs.${action}`, action.replace(/_/g, ' '));
   };
 
   const formatLogDesc = (log: any) => {
-    switch(log.action) {
+    const action = log.action;
+    const metadata = log.metadata || {};
+    
+    switch(action) {
       case 'USER_LOGIN':
-        return `Successful authentication via ${log.metadata?.method?.toUpperCase() || 'Portal'}.`;
+        return t('logs.desc.USER_LOGIN', { method: metadata.method?.toUpperCase() || 'Portal' });
       case 'LANGUAGE_UPDATED':
-        return `Set preferred digital communication language to '${log.metadata?.language || 'English'}'.`;
+        return t('logs.desc.LANGUAGE_UPDATED', { language: metadata.language || 'English' });
       case 'CONSENT_GRANTED':
-        return `Granted access for '${log.metadata?.purpose_name || 'Data Processing'}'.`;
+        return t('logs.desc.CONSENT_GRANTED', { purpose: metadata.purpose_name || t('common.unknown') });
       case 'CONSENT_WITHDRAWN':
-        return `Withdrew access for '${log.metadata?.purpose_name || 'Data Processing'}'.`;
+        return t('logs.desc.CONSENT_WITHDRAWN', { purpose: metadata.purpose_name || t('common.unknown') });
       case 'DSR_CREATED':
-        return `Requested data ${log.metadata?.request_type || 'access'}.`;
+        return t('logs.desc.DSR_CREATED', { type: metadata.request_type || t('common.unknown') });
       case 'GRIEVANCE_CREATED':
-        return `Ticket raised for: ${log.metadata?.category || 'Issue'}.`;
+        return t('logs.desc.GRIEVANCE_CREATED', { category: metadata.category || t('common.unknown') });
       default:
-        return 'System action logged.';
+        return t('logs.desc.system');
     }
   };
 
   const handleExportCSV = () => {
     if (!logs.length) {
-      addToast('No logs available to export.', 'error');
+      addToast(t('profile.export_error'), 'error');
       return;
     }
-    const headers = ['Date', 'Action', 'Description'];
+    const headers = [t('common.date'), t('common.action'), t('common.description')];
     const csvContent = [
       headers.join(','),
       ...logs.map(log => 
         `"${new Date(log.created_at).toLocaleString()}","${formatLogTitle(log.action)}","${formatLogDesc(log).replace(/"/g, '""')}"`
       )
-    ].join('\\n');
+    ].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -125,7 +125,7 @@ export default function Profile() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    addToast('Logs exported successfully.', 'success');
+    addToast(t('profile.export_success'), 'success');
   };
 
   return (
@@ -164,14 +164,14 @@ export default function Profile() {
                   {user?.email?.[0].toUpperCase() || 'P'}
                 </div>
                 <h3 className="font-bold text-[#0f172a] text-lg uppercase tracking-tight">
-                  {user?.email?.split('@')[0] || 'Principal'}
+                  {user?.email?.split('@')[0] || t('common.unknown')}
                 </h3>
-                <p className="text-sm text-[#64748b] font-medium">{t('profile.verified_account', 'Verified Account')}</p>
+                <p className="text-sm text-[#64748b] font-medium">{t('profile.verified_account')}</p>
                 <div className="flex items-center gap-1.5 mt-2.5">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                     <ShieldCheck size={12} className="text-emerald-500" />
                   </div>
-                  <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider">{t('profile.verified_id', 'Verified Identity')}</span>
+                  <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider">{t('profile.verified_id')}</span>
                 </div>
               </div>
             </Card>
@@ -206,7 +206,7 @@ export default function Profile() {
                 />
                 <div className="flex items-center gap-1.5 px-3 py-2 rounded-[8px] bg-emerald-50 border border-emerald-100">
                   <Lock size={12} className="text-emerald-500" />
-                  <span className="text-xs text-emerald-600 font-medium">Verified via OTP Authentication</span>
+                  <span className="text-xs text-emerald-600 font-medium">{t('profile.otp_verified')}</span>
                 </div>
               </div>
             </Card>
@@ -234,7 +234,7 @@ export default function Profile() {
                     />
                   </div>
                   <p className="text-xs text-[#94a3b8] mt-2 mb-4">
-                    {t('profile.lang_hint', 'Applies to DSR communications and email alerts.')}
+                    {t('profile.lang_hint')}
                   </p>
                   <Button type="submit" isLoading={isSaving} className="w-full" size="md">
                     {t('profile.save')}
@@ -261,7 +261,7 @@ export default function Profile() {
                     <h3 className="font-semibold text-[#0f172a] text-[15px] flex items-center gap-1.5">
                       {t('profile.logs')}
                     </h3>
-                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('profile.logs_subtitle', 'Audited log of your platform interactions')}</p>
+                    <p className="text-xs text-[#94a3b8] mt-0.5">{t('profile.logs_subtitle')}</p>
                   </div>
                 </div>
                 <Button
@@ -271,7 +271,7 @@ export default function Profile() {
                   onClick={handleExportCSV}
                 >
                   <Download size={13} className="mr-1.5" />
-                  Export CSV
+                  {t('profile.export_csv')}
                 </Button>
               </div>
 
@@ -286,8 +286,8 @@ export default function Profile() {
                     </div>
                   ) : logs.length === 0 ? (
                     <div className="text-center py-10">
-                      <p className="text-sm font-semibold text-[#64748b]">No activity yet</p>
-                      <p className="text-xs text-[#94a3b8] mt-1">Your recent interactions will appear here.</p>
+                      <p className="text-sm font-semibold text-[#64748b]">{t('profile.no_logs')}</p>
+                      <p className="text-xs text-[#94a3b8] mt-1">{t('profile.no_logs_desc')}</p>
                     </div>
                   ) : (
                     logs.map((log, i) => {

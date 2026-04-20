@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -12,9 +13,9 @@ import { useToastStore } from '../../store/toastStore';
 import { userApi } from '../../services/api/userApi';
 
 const grievanceSchema = z.object({
-  tenant:      z.string().min(1, 'Please select a tenant'),
-  category:    z.string().min(1, 'Please select a category'),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(1000),
+  tenant:      z.string().min(1, 'grievance.form.tenant_error'),
+  category:    z.string().min(1, 'grievance.form.category_error'),
+  description: z.string().min(10, 'grievance.form.description_error').max(1000),
 });
 
 type GrievanceForm = z.infer<typeof grievanceSchema>;
@@ -31,6 +32,7 @@ function SectionLabel({ icon, label }: { icon: React.ReactNode; label: string })
 }
 
 export default function RaiseGrievance() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { addToast } = useToastStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,10 +58,10 @@ export default function RaiseGrievance() {
         category: data.category,
         description: data.description,
       });
-      addToast('Grievance Filed Successfully!', 'success');
+      addToast(t('common.success'), 'success');
       navigate('/grievance/history');
     } catch (err: any) {
-      addToast(err.message || 'Failed to file grievance', 'error');
+      addToast(err.message || t('common.error'), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +80,7 @@ export default function RaiseGrievance() {
   const errMsg = (msg?: string) => msg && (
     <p className="text-xs text-[#ef4444] font-medium mt-1.5 flex items-center gap-1">
       <span className="w-1 h-1 rounded-full bg-[#ef4444] inline-block" />
-      {msg}
+      {t(msg)}
     </p>
   );
 
@@ -87,13 +89,13 @@ export default function RaiseGrievance() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-xl font-bold text-[#0f172a] tracking-tight">Raise Grievance</h2>
-          <p className="text-sm text-[#64748b] mt-0.5">Report an issue or violation regarding your data privacy.</p>
+          <h2 className="text-xl font-bold text-[#0f172a] tracking-tight">{t('grievance.raise_title')}</h2>
+          <p className="text-sm text-[#64748b] mt-0.5">{t('grievance.raise_subtitle')}</p>
         </div>
         <Link to="/grievance/history">
           <Button variant="outline" size="sm">
             <History size={14} className="mr-1.5" />
-            Ticket History
+            {t('grievance.history_btn')}
           </Button>
         </Link>
       </div>
@@ -107,7 +109,7 @@ export default function RaiseGrievance() {
           <div className="mx-6 mt-5 flex items-center gap-3 px-4 py-3 rounded-[12px] bg-[#fff7ed] border border-[#fed7aa]">
             <AlertTriangle size={16} className="text-orange-500 shrink-0" />
             <p className="text-xs font-semibold text-orange-800">
-              SLA Enforced: Auto-escalates to DPO if unresolved within <span className="font-bold">48 hours</span>.
+              {t('grievance.sla_banner')}
             </p>
           </div>
 
@@ -115,9 +117,9 @@ export default function RaiseGrievance() {
 
             {/* Tenant */}
             <div>
-              <SectionLabel icon={<Building2 size={13} />} label="Involved Organisation" />
+              <SectionLabel icon={<Building2 size={13} />} label={t('grievance.form.tenant_label')} />
               <select {...register('tenant')} className={inputClass(!!errors.tenant)}>
-                <option value="">— Select Organisation —</option>
+                <option value="">{t('grievance.form.tenant_placeholder')}</option>
                 {tenants.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
@@ -127,33 +129,33 @@ export default function RaiseGrievance() {
 
             {/* Category */}
             <div>
-              <SectionLabel icon={<Tag size={13} />} label="Grievance Category" />
+              <SectionLabel icon={<Tag size={13} />} label={t('grievance.form.category_label')} />
               <select {...register('category')} className={inputClass(!!errors.category)}>
-                <option value="">— Select Category —</option>
-                <option value="consent_viol">Consent Violation (Data used without permission)</option>
-                <option value="breach">Potential Data Breach</option>
-                <option value="proc_error">Inaccurate Processing / Error</option>
-                <option value="unauth_share">Unauthorized Third-Party Sharing</option>
-                <option value="other">Other</option>
+                <option value="">{t('grievance.form.category_placeholder')}</option>
+                <option value="privacy_leak">{t('grievance.categories.privacy_leak')}</option>
+                <option value="data_incorrect">{t('grievance.categories.data_incorrect')}</option>
+                <option value="unauthorized_access">{t('grievance.categories.unauthorized_access')}</option>
+                <option value="proc_error">{t('grievance.categories.proc_error')}</option>
+                <option value="other">{t('grievance.categories.other')}</option>
               </select>
               {errMsg(errors.category?.message)}
             </div>
 
             {/* Description */}
             <div>
-              <SectionLabel icon={<AlignLeft size={13} />} label="Description of Issue" />
+              <SectionLabel icon={<AlignLeft size={13} />} label={t('grievance.form.description_label')} />
               <textarea
                 {...register('description')}
                 rows={5}
                 className={[inputClass(!!errors.description), "resize-y"].join(' ')}
-                placeholder="Provide details about the unauthorized sharing or violation. Be as specific as possible..."
+                placeholder={t('grievance.form.description_placeholder')}
               />
               {errMsg(errors.description?.message)}
             </div>
 
             {/* Attachments */}
             <div>
-              <SectionLabel icon={<Paperclip size={13} />} label="Evidence Attachments (Optional)" />
+              <SectionLabel icon={<Paperclip size={13} />} label={t('grievance.form.attachments_label')} />
               <FileUpload
                 accept="application/pdf,image/jpeg,image/png"
                 onFileSelect={(f) => setFile(f)}
@@ -168,7 +170,7 @@ export default function RaiseGrievance() {
                 onClick={() => navigate(-1)}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -178,7 +180,7 @@ export default function RaiseGrievance() {
               >
                 {!isSubmitting && (
                   <>
-                    File Grievance
+                    {t('grievance.form.submit_btn')}
                     <ArrowRight size={15} className="ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                   </>
                 )}

@@ -20,6 +20,8 @@ interface AuthState {
   email: string | null;
   phone_number: string | null;
   signupData: SignupData | null;
+  language: string;
+  setLanguage: (lang: string) => void;
   setAuthenticated: (user: User | null) => void;
   setCredentials: (email: string, phone: string) => void;
   setSignupData: (data: SignupData) => void;
@@ -34,12 +36,15 @@ export const useAuthStore = create<AuthState>()(
       email: null,
       phone_number: null,
       signupData: null,
+      language: 'en',
+      setLanguage: (lang) => set({ language: lang }),
       setAuthenticated: (user) => set({ isAuthenticated: !!user, user }),
       setCredentials: (email, phone_number) => set({ email, phone_number }),
       setSignupData: (data) => set({ signupData: data }),
       logout: () => {
         set({ isAuthenticated: false, user: null, email: null, phone_number: null, signupData: null });
         localStorage.removeItem('secure-cms-auth');
+        sessionStorage.removeItem('lang_initialized');
       },
     }),
     {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { ToastContainer } from '../ui/Toast';
@@ -9,7 +10,8 @@ import { userApi } from '../../services/api/userApi';
 export function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
-  const { isAuthenticated, setAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated, setAuthenticated, logout, setLanguage } = useAuthStore();
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,25 +27,40 @@ export function AppLayout() {
         return;
       }
 
-      if (!isAuthenticated) {
-        try {
-          const res = await userApi.getUser();
-          if (res && (res.principal_id || res.id)) {
-            setAuthenticated(res);
-          } else {
-            throw new Error("Invalid session");
-          }
-        } catch (error) {
-          console.error("Session restoration failed:", error);
-          logout();
-          navigate('/login');
+      try {
+        // Fetch user and settings in parallel
+        const [meRes, settingsRes] = await Promise.all([
+          !isAuthenticated ? userApi.getUser() : Promise.resolve(null),
+          userApi.getSettings()
+        ]);
+
+        if (meRes && (meRes.principal_id || meRes.id)) {
+          setAuthenticated(meRes);
         }
+
+        // Initialize Language — always re-apply from backend to honour saved preferences
+        const backendLang = settingsRes?.preferred_language;
+        if (backendLang) {
+          setLanguage(backendLang);
+          if (i18n.language !== backendLang) {
+            i18n.changeLanguage(backendLang);
+          }
+        }
+
+      } catch (error) {
+        console.error("Session restoration failed:", error);
+        logout();
+        navigate('/login');
       }
       setIsInitializing(false);
     };
 
+    // Only run if not already initializing
     initSession();
-  }, [isAuthenticated, setAuthenticated, logout, navigate, location.pathname]);
+    
+    // Remove location.pathname from dependencies to stop re-running on navigation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, logout]);
 
   if (isInitializing) {
     return (

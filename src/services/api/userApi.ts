@@ -63,11 +63,13 @@ export const userApi = {
   },
 
   // 7. DSR Requests List
-  getDsrRequests: async (filters?: { status?: string; tenant_id?: string; app_id?: string; page?: number }) => {
+  getDsrRequests: async (filters?: { status?: string; tenant_id?: string; app_id?: string; page?: number; startDate?: string; endDate?: string }) => {
     const params = new URLSearchParams();
     if (filters?.tenant_id) params.append('tenant_id', filters.tenant_id);
     if (filters?.app_id) params.append('app_id', filters.app_id);
     if (filters?.status && filters.status !== 'All') params.append('status', filters.status.toLowerCase());
+    if (filters?.startDate) params.append('startDate', filters.startDate);
+    if (filters?.endDate) params.append('endDate', filters.endDate);
     if (filters?.page) params.append('page', filters.page.toString());
 
     const url = params.toString() ? `/user/dsr/requests?${params.toString()}` : `/user/dsr/requests`;
@@ -91,10 +93,45 @@ export const userApi = {
   getGrievances: async () => {
     return await api('/user/grievances');
   },
+  getGrievanceById: async (id: string) => {
+    return await api(`/user/grievances/${id}`);
+  },
   createGrievance: async (payload: { tenant_id: string; category: string; description: string }) => {
     return await api('/user/grievance', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  },
+
+  // 11. Feedback
+  getFeedback: async () => {
+    return await api('/user/feedback');
+  },
+  submitFeedback: async (payload: { category: string; rating: number; comment: string }) => {
+    return await api('/user/feedback', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // 12. Settings
+  getSettings: async () => {
+    return await api('/user/settings');
+  },
+  updateSettings: async (payload: { preferred_language: string }) => {
+    return await api('/user/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  },
+  // 13. Public Policy Pre-fetch (for language pre-binding before consent popup)
+  getPublicPolicy: async (appId: string, identity: { email?: string; phone_number?: string }) => {
+    const params = new URLSearchParams();
+    if (identity.email) params.append('email', identity.email);
+    if (identity.phone_number) params.append('phone_number', identity.phone_number);
+    const base = (import.meta as any).env?.VITE_API_URL || '';
+    const res = await fetch(`${base}/public/apps/${appId}/policy?${params.toString()}`);
+    if (!res.ok) return null;
+    return res.json();
   },
 };

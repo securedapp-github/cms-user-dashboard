@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MessageSquare, Send, Star, Smile } from 'lucide-react';
@@ -6,144 +7,172 @@ import { Button } from '../components/ui/Button';
 import { Select } from '../components/ui/Select';
 import { RatingStars } from '../components/ui/RatingStars';
 import { useToastStore } from '../store/toastStore';
+import { userApi } from '../services/api/userApi';
 
 export default function Feedback() {
+  const { t } = useTranslation();
   const { addToast } = useToastStore();
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rating, setRating] = useState(0);
-  const [category, setCategory] = useState('general');
-  const [comments, setComments] = useState('');
+  const [category, setCategory] = useState('general_experience');
+  const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  const CATEGORIES = [
+    { label: t('feedback.categories.general', 'General Experience'), value: 'general_experience' },
+    { label: t('feedback.categories.dsr', 'Recent DSR Request'), value: 'dsr_request' },
+    { label: t('feedback.categories.grievance', 'Grievance Ticket Resolution'), value: 'grievance_resolution' }
+  ];
+
+  const validate = () => {
+    if (rating < 1 || rating > 5) {
+      addToast(t('common.error'), 'error');
+      return false;
+    }
+    if (comment.length < 2 || comment.length > 500) {
+      addToast(t('common.error'), 'error');
+      return false;
+    }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (rating === 0) {
-      addToast('Please provide a star rating', 'error');
-      return;
-    }
+    if (!validate()) return;
+
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setSubmitted(true);
-    addToast('Thank you for your valuable feedback!', 'success');
+    try {
+      await userApi.submitFeedback({ category, rating, comment });
+      setIsSubmitting(false);
+      setSubmitted(true);
+      addToast(t('common.success'), 'success');
+    } catch (err: any) {
+      setIsSubmitting(false);
+      addToast(err.message || t('common.error'), 'error');
+    }
   };
 
   const handleReset = () => {
     setSubmitted(false);
     setRating(0);
-    setCategory('general');
-    setComments('');
+    setCategory('general_experience');
+    setComment('');
   };
 
+  const ratingLabel = [
+    '', 
+    t('feedback.rating_text.poor'), 
+    t('feedback.rating_text.fair'), 
+    t('feedback.rating_text.good'), 
+    t('feedback.rating_text.great'), 
+    t('feedback.rating_text.excellent')
+  ][rating];
+
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto py-8">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
         {submitted ? (
-          /* Success state */
-          <Card className="overflow-hidden text-center">
-            <div className="h-1 w-full bg-gradient-to-r from-emerald-400 to-emerald-500" />
-            <div className="p-12 flex flex-col items-center gap-4">
+          /* Success State */
+          <Card className="overflow-hidden text-center border-slate-200">
+            <div className="h-1.5 w-full bg-gradient-to-r from-emerald-400 to-emerald-500" />
+            <div className="p-16 flex flex-col items-center gap-6">
               <div className="w-20 h-20 rounded-full bg-emerald-50 border-2 border-emerald-100 flex items-center justify-center">
                 <Smile size={36} className="text-emerald-500" />
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-[#0f172a] mb-2">Thank you! 🎉</h2>
-                <p className="text-[#64748b] text-sm leading-relaxed max-w-sm">
-                  Your feedback helps us build a better privacy experience for everyone.
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t('feedback.success_title')} 🎉</h2>
+                <p className="text-slate-500 text-sm leading-relaxed max-w-sm mx-auto">
+                  {t('feedback.success_subtitle')}
                 </p>
               </div>
-              <div className="flex items-center gap-1 mt-2">
-                {[1,2,3,4,5].map((s) => (
-                  <Star key={s} size={20} className={s <= rating ? 'text-amber-400 fill-amber-400' : 'text-[#e2e8f0]'} />
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star 
+                    key={s} 
+                    size={24} 
+                    className={s <= rating ? 'text-amber-400 fill-amber-400' : 'text-slate-100'} 
+                  />
                 ))}
               </div>
-              <Button variant="secondary" onClick={handleReset} className="mt-2">
-                Submit Another Response
+              <Button variant="secondary" onClick={handleReset} className="mt-2 px-8">
+                {t('feedback.another_response')}
               </Button>
             </div>
           </Card>
         ) : (
-          <Card className="overflow-hidden">
+          /* Submission Form */
+          <Card className="overflow-hidden shadow-xl border-slate-200/60">
             {/* Top gradient accent */}
-            <div className="h-1 w-full bg-gradient-to-r from-[#4f46e5] to-[#6366f1]" />
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4f46e5] to-[#6366f1]" />
 
-            {/* Header section */}
-            <div className="px-8 pt-8 pb-6 text-center border-b border-[#f1f5f9]">
-              <div className="w-14 h-14 rounded-[16px] bg-[#eef2ff] border border-[#c7d2fe] flex items-center justify-center mx-auto mb-4">
-                <MessageSquare size={24} className="text-[#4f46e5]" />
+            <div className="px-10 pt-10 pb-8 text-center border-b border-slate-100 bg-slate-50/50">
+              <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center mx-auto mb-5 rotate-3">
+                <MessageSquare size={28} className="text-[#4f46e5]" />
               </div>
-              <h2 className="text-xl font-bold text-[#0f172a] mb-1.5">Share Your Experience</h2>
-              <p className="text-sm text-[#64748b] max-w-sm mx-auto leading-relaxed">
-                We constantly strive to make managing your digital consent footprint completely frictionless.
+              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t('feedback.title')}</h2>
+              <p className="text-sm text-slate-500 mt-2 font-medium max-w-sm mx-auto leading-relaxed">
+                {t('feedback.subtitle')}
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-7">
+            <form onSubmit={handleSubmit} className="p-10 space-y-9">
               {/* Category */}
               <Select
-                label="What are you giving feedback on?"
+                label={t('feedback.labels.category')}
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                options={[
-                  { label: 'General Experience', value: 'general' },
-                  { label: 'Recent DSR Request', value: 'dsr' },
-                  { label: 'Grievance Ticket Resolution', value: 'grievance' },
-                ]}
+                options={CATEGORIES}
               />
 
-              {/* Star rating */}
-              <div className="space-y-2.5">
-                <label className="text-sm font-medium text-[#0f172a] block">
-                  Overall Rating <span className="text-[#ef4444]">*</span>
+              {/* Rating */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  {t('feedback.labels.rating')} <span className="text-rose-500 text-xs">*</span>
                 </label>
-                <div className="flex items-center gap-2 p-4 bg-[#f8fafc] rounded-[12px] border border-[#e2e8f0]">
+                <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between transition-all hover:bg-white hover:border-indigo-200 group">
                   <RatingStars rating={rating} onRatingChange={setRating} />
-                  {rating > 0 && (
-                    <span className="text-sm font-semibold text-[#64748b] ml-2">
-                      {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent!'][rating]}
-                    </span>
-                  )}
+                  <span className="text-sm font-bold text-slate-400 group-hover:text-amber-500 transition-colors uppercase tracking-widest text-[10px]">
+                    {ratingLabel}
+                  </span>
                 </div>
               </div>
 
               {/* Comments */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-[#0f172a] block">
-                  Detailed Comments <span className="text-[#ef4444]">*</span>
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+                  {t('feedback.labels.comments')} <span className="text-rose-500 text-xs">*</span>
                 </label>
                 <textarea
-                  value={comments}
-                  onChange={(e) => setComments(e.target.value)}
-                  rows={4}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={5}
                   required
-                  className={[
-                    "w-full px-4 py-3 text-sm rounded-[10px] resize-none",
-                    "border border-[#e2e8f0] bg-[#f9fafb] text-[#0f172a]",
-                    "placeholder:text-[#94a3b8]",
-                    "transition-all duration-200",
-                    "focus:outline-none focus:border-[#4f46e5] focus:bg-white",
-                    "focus:shadow-[0_0_0_3px_rgba(79,70,229,0.1)]",
-                    "hover:border-[#cbd5e1]",
-                  ].join(' ')}
-                  placeholder="Tell us what you liked or how we can improve..."
+                  maxLength={500}
+                  className="w-full px-6 py-4 text-sm rounded-2xl border border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 transition-all outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 focus:bg-white resize-none"
+                  placeholder={t('feedback.placeholders.comments')}
                 />
-                <p className="text-xs text-[#94a3b8] text-right">{comments.length} / 500</p>
+                <div className="flex justify-between items-center px-1">
+                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('common.loading')}</span>
+                   <span className={`text-[11px] font-bold ${comment.length > 450 ? 'text-amber-500' : 'text-slate-400'}`}>
+                     {comment.length} / 500
+                   </span>
+                </div>
               </div>
 
               <Button
                 type="submit"
                 isLoading={isSubmitting}
-                className="w-full group"
-                size="md"
+                className="w-full h-16 text-base font-bold shadow-lg shadow-indigo-100 flex items-center justify-center gap-3"
               >
                 {!isSubmitting && (
                   <>
-                    Submit Feedback
-                    <Send size={15} className="ml-2 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    {t('feedback.submit_btn')}
+                    <Send size={20} className="transition-transform group-hover:translate-x-1" />
                   </>
                 )}
               </Button>

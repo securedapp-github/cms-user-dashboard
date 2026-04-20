@@ -15,15 +15,16 @@ import { Button } from '../../components/ui/Button';
 import { LANGUAGES } from '../../i18n';
 import logo from '../../assets/STRIGHT.png';
 
-const requestOtpSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  phone_number: z.string().min(10, 'Please enter a valid phone number'),
-});
-
-type RequestOtpForm = z.infer<typeof requestOtpSchema>;
-
 export default function Login() {
   const { t, i18n } = useTranslation();
+
+  const requestOtpSchema = z.object({
+    email: z.string().email(t('auth.validation.email_invalid')),
+    phone_number: z.string().min(10, t('auth.validation.phone_invalid')),
+  });
+
+  type RequestOtpForm = z.infer<typeof requestOtpSchema>;
+
   const [step, setStep] = useState<1 | 2>(1);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,12 +59,12 @@ export default function Login() {
     try {
       await authApi.requestOtp(data.email, data.phone_number);
       setCredentials(data.email, data.phone_number);
-      addToast('OTP sent securely to your device', 'success');
+      addToast(t('auth.otp_sent_securely'), 'success');
       setStep(2);
       setSecondsLeft(30);
       setTimeout(() => otpRefs[0].current?.focus(), 100);
     } catch (err: any) {
-      addToast(err.message || 'Failed to send OTP', 'error');
+      addToast(err.message || t('auth.otp_send_error'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -106,31 +107,26 @@ export default function Login() {
       const email = storeEmail || 'user@example.com';
       const phone_number = storePhone || '+1234567890';
       
-      // Real backend OTP verification
       await authApi.verifyOtp(email, phone_number, otpValue);
 
-      // Actual backend session login
       const sessionRes = await userApi.loginUser({ email, phone_number });
       
       if (sessionRes && sessionRes.token) {
-        // Store the JWT for subsequent API requests
         localStorage.setItem('user_token', sessionRes.token);
-        
-        // Fetch the actual principal profile from the backend
         const userProfile = await userApi.getUser();
         
         if (userProfile && (userProfile.principal_id || userProfile.id)) {
           setAuthenticated(userProfile);
-          addToast(`Welcome back!`, 'success');
+          addToast(`${t('auth.welcome_back')}!`, 'success');
           navigate('/');
         } else {
-          throw new Error("Could not retrieve user profile");
+          throw new Error(t('auth.profile_fetch_error'));
         }
       } else {
-        throw new Error("Failed to authenticate with server");
+        throw new Error(t('auth.auth_server_error'));
       }
     } catch (err: any) {
-      addToast(err.message || 'Verification Failed', 'error');
+      addToast(err.message || t('auth.otp_verify_failed'), 'error');
       setOtp(['', '', '', '', '', '']);
       otpRefs[0].current?.focus();
     } finally {
@@ -144,13 +140,13 @@ export default function Login() {
     try {
       if (storeEmail && storePhone) {
         await authApi.requestOtp(storeEmail, storePhone);
-        addToast('OTP resent successfully', 'success');
+        addToast(t('auth.otp_resend_success'), 'success');
         setSecondsLeft(30);
         setOtp(['', '', '', '', '', '']);
         otpRefs[0].current?.focus();
       }
     } catch {
-      addToast('Failed to resend OTP', 'error');
+      addToast(t('auth.otp_resend_error'), 'error');
     } finally {
       setIsLoading(false);
     }
@@ -215,7 +211,7 @@ export default function Login() {
                   transition={{ duration: 0.2 }}
                 >
                   <div className="mb-5">
-                    <h2 className="text-lg font-semibold text-[#0f172a] mb-1">{t('auth.welcome_back', 'Welcome back')}</h2>
+                    <h2 className="text-lg font-semibold text-[#0f172a] mb-1">{t('auth.welcome_back')}</h2>
                     <p className="text-sm text-[#64748b]">{t('auth.login_subtitle')}</p>
                   </div>
                   <form onSubmit={handleSubmit(onRequestSubmit)} className="flex flex-col gap-4">
@@ -267,7 +263,7 @@ export default function Login() {
                       onClick={() => setStep(1)}
                       className="flex items-center gap-1.5 text-sm font-medium text-[#64748b] hover:text-[#0f172a] transition-colors"
                     >
-                      <ArrowLeft size={15} /> Back
+                      <ArrowLeft size={15} /> {t('common.back')}
                     </button>
                   </div>
 
@@ -335,7 +331,7 @@ export default function Login() {
 
         {/* Footer note */}
         <p className="text-center text-[11px] text-[#94a3b8] mt-6">
-          🔒 Secured with end-to-end encryption · Stright v2.0
+          {t('auth.footer_note')}
         </p>
       </div>
     </div>

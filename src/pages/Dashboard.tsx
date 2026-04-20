@@ -1,4 +1,6 @@
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, type Variants } from 'framer-motion';
+import { useTranslation, Trans } from 'react-i18next';
 import {
   Activity, ShieldAlert, BadgeCheck, FileClock,
   ShieldCheck, FileText, XCircle, AlertCircle,
@@ -8,146 +10,124 @@ import { StatCard } from '../components/cards/StatCard';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { cn } from '../utils/cn';
-import { useAuthStore } from '../store/authStore';
-import { useUserStore } from '../store/userStore';
 import { userApi } from '../services/api/userApi';
-import { useEffect, useState } from 'react';
+import { useAuthStore } from '../store/authStore';
+import useSWR from 'swr';
+
+interface DashboardSummary {
+  total_consents: number;
+  active_consents: number;
+  expiring_soon: number;
+  revoked: number;
+  expired: number;
+  pending_dsr: number;
+  institutions_count: number;
+}
+
+interface ActivityItem {
+  id: string;
+  title: string;
+  desc: string;
+  time: string;
+  badgeVariant: 'active' | 'pending' | 'expired' | 'info';
+  status: string;
+  iconBg: string;
+  icon: React.ReactNode;
+}
+
+interface ExpiringConsent {
+  id: string;
+  tenant_name?: string;
+  status: string;
+}
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { summary, consents, setSummary, setConsents, setUser } = useUserStore();
+  const { data: summary, mutate: mutateSummary } = useSWR('user/summary', () => userApi.getSummary());
+  const { data: logsData } = useSWR('user/logs', () => userApi.getLogs(5));
+  const { data: consentsData } = useSWR('user/consents', () => userApi.getConsents());
 
-  const [logs, setLogs] = useState<any[]>([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [meRes, sumRes, consRes, logsRes] = await Promise.all([
-          userApi.getUser(),
-          userApi.getSummary(),
-          userApi.getConsents(),
-          userApi.getLogs(10)
-        ]);
-        if(meRes) setUser(meRes);
-        if(sumRes) setSummary(sumRes);
-        if(consRes && consRes.consents) setConsents(consRes.consents);
-        if(logsRes && logsRes.logs) setLogs(logsRes.logs);
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      }
-    };
-    fetchData();
-    const interval = setInterval(fetchData, 10000);
-    return () => clearInterval(interval);
-  }, [setUser, setSummary, setConsents]);
-
-  const userName = user?.email ? user.email.split('@')[0] : 'User';
-
-  const containerVars = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08 }
-    }
-  } as const;
-
-  const itemVars = {
-    hidden: { opacity: 0, y: 16 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring' as const, duration: 0.5, bounce: 0.2 } }
-  } as const;
-
-  const activities = logs.slice(0, 5).map((log: any) => {
-    const action = log.action || '';
-    const isConsent = action.includes('CONSENT');
-    const isDSR = action.includes('DSR');
-    const isGrievance = action.includes('GRIEVANCE');
+  const activities = (logsData?.logs || []).map((log: any) => {
+    const action = log.action;
+    const metadata = log.metadata || {};
     
-    let title = action.replace(/_/g, ' ');
-    let status = 'Action Logged';
-    let badgeVariant = 'pending';
-    let icon = <FileText size={17} className="text-gray-500" />;
-    let iconBg = 'bg-gray-50 text-gray-500';
-
-    if (isConsent) {
-      const purposeName = log.metadata?.purpose_name || log.metadata?.app_name || 'Consent';
-      if(action.includes('WITHDRAW') || action.includes('REVOKE')) {
-        status = 'Rejected / Withdrawn';
-        badgeVariant = 'expired';
-        icon = <XCircle size={17} className="text-red-500" />;
-        iconBg = 'bg-red-50 text-red-500';
-        title = `${purposeName} Withdrawn`;
-      } else {
-        status = 'Accepted';
-        badgeVariant = 'active';
-        icon = <ShieldCheck size={17} className="text-emerald-600" />;
-        iconBg = 'bg-emerald-50 text-emerald-600';
-        title = `${purposeName} Accepted`;
-      }
-    } else if (isDSR) {
-      status = 'Pending';
-      badgeVariant = 'pending';
-      icon = <FileClock size={17} className="text-amber-600" />;
-      iconBg = 'bg-amber-50 text-amber-600';
-      title = 'DSR Request: ' + (log.metadata?.request_type || 'Privacy Data');
-    } else if (isGrievance) {
-      status = 'Open';
-      badgeVariant = 'expired';
-      icon = <AlertCircle size={17} className="text-red-500" />;
-      iconBg = 'bg-red-50 text-red-500';
-      title = 'Grievance: ' + (log.metadata?.category || 'Issue Reported');
+    let description = 'System Event';
+    if (action === 'USER_LOGIN') {
+      description = t('logs.desc.USER_LOGIN', { method: metadata.method?.toUpperCase() || 'Portal' });
+    } else if (action === 'LANGUAGE_UPDATED') {
+      description = t('logs.desc.LANGUAGE_UPDATED', { language: metadata.language || 'English' });
+    } else if (action === 'CONSENT_GRANTED') {
+      description = t('logs.desc.CONSENT_GRANTED', { purpose: metadata.purpose_name || t('common.unknown') });
+    } else if (action === 'CONSENT_WITHDRAWN') {
+      description = t('logs.desc.CONSENT_WITHDRAWN', { purpose: metadata.purpose_name || t('common.unknown') });
+    } else if (action === 'DSR_CREATED') {
+      description = t('logs.desc.DSR_CREATED', { type: metadata.request_type || t('common.unknown') });
+    } else if (action === 'DSR_COMPLETED') {
+      description = t('logs.desc.DSR_COMPLETED', { type: metadata.request_type || t('common.unknown') });
+    } else if (action === 'DSR_REJECTED') {
+      description = t('logs.desc.DSR_REJECTED', { type: metadata.request_type || t('common.unknown') });
+    } else if (action === 'GRIEVANCE_CREATED') {
+      description = t('logs.desc.GRIEVANCE_CREATED', { category: metadata.category || t('common.unknown') });
     }
+
+    const isSuccess = action === 'USER_LOGIN' || action === 'DSR_COMPLETED' || action === 'CONSENT_GRANTED';
+    const isError = action === 'DSR_REJECTED' || action === 'CONSENT_WITHDRAWN';
 
     return {
       id: log.id,
-      title,
-      desc: log.tenant_id ? `Tenant ${log.tenant_id.substring(0,8)}` : "System",
+      title: t(`logs.${action}`, action.replace(/_/g, ' ')),
+      desc: description,
       time: new Date(log.created_at).toLocaleString(),
-      status,
-      badgeVariant,
-      icon,
-      iconBg,
+      badgeVariant: isSuccess ? 'active' : (isError ? 'expired' : 'info'),
+      status: isSuccess ? t('common.success') : (isError ? t('common.error') : t('common.status')),
+      iconBg: isSuccess ? 'bg-emerald-100' : (isError ? 'bg-red-100' : 'bg-blue-100'),
+      icon: isSuccess 
+        ? <ShieldCheck size={18} className="text-emerald-600" /> 
+        : (isError ? <XCircle size={18} className="text-red-600" /> : <Activity size={18} className="text-blue-600" />)
     };
   });
 
-  const expiringConsents = consents.filter(c => c.status === 'expiring_soon' || (c.expires_at && new Date(c.expires_at).getTime() < Date.now() + 7*24*60*60*1000));
-  const alertsCount = expiringConsents.length + (summary?.dsr_pending ? 1 : 0);
+  const expiringConsents = (consentsData?.consents || []).filter((c: any) => c.status === 'expiring_soon' || c.status === 'EXPIRING');
 
+
+  const alertsCount = expiringConsents.length + (summary?.pending_dsr ? 1 : 0);
+
+  const containerVars: Variants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+  const itemVars: Variants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', duration: 0.5 } }
+  };
+
+  const displayName = user?.email?.split('@')[0] || t('common.user');
 
   return (
-    <motion.div 
-      variants={containerVars}
-      initial="hidden"
-      animate="show"
-      className="space-y-6 max-w-7xl mx-auto"
-    >
-      {/* Welcome Banner */}
-      <motion.div variants={itemVars}>
-        <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-r from-[#4f46e5] via-[#5b52e8] to-[#6366f1] px-6 py-5 text-white shadow-[0_8px_28px_rgba(79,70,229,0.30)]">
-          {/* Background decorations */}
-          <div className="absolute top-0 right-0 w-64 h-full opacity-10">
-            <div className="absolute top-4 right-8 w-32 h-32 rounded-full bg-white" />
-            <div className="absolute -bottom-4 right-24 w-24 h-24 rounded-full bg-white" />
-          </div>
-          <div className="relative z-10 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight">Welcome back, {userName}!</h2>
-              <p className="text-indigo-200 text-sm mt-1">You have <span className="text-white font-semibold">{summary?.expiring || 0} consents</span> expiring soon.</p>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 bg-white/15 backdrop-blur rounded-[12px] px-4 py-2.5 border border-white/20">
-              <TrendingUp size={18} className="text-white" />
-              <span className="text-sm font-semibold text-white">{summary?.active || 0}/{summary?.total_consents || 0} Active</span>
-            </div>
-          </div>
+    <motion.div variants={containerVars} initial="hidden" animate="show" className="max-w-7xl mx-auto space-y-6">
+      
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {t('dashboard.welcome', { name: displayName })}
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            <Trans i18nKey="dashboard.expiring_subtitle" count={summary?.expiring_soon || 0}>
+              You have <span className="font-bold text-amber-500">{'{{count}}'} consents</span> expiring soon.
+            </Trans>
+          </p>
         </div>
-      </motion.div>
+      </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <motion.div variants={itemVars}>
           <StatCard
-            title="Total Consents"
+            title={t('dashboard.total_consents')}
             value={summary?.total_consents?.toString() || "0"}
-            meta="Across Services"
+            meta={t('dashboard.stats_meta.across_services')}
             metaType="neutral"
             metaIcon={<Users size={11} />}
             icon={<Activity size={17} />}
@@ -157,9 +137,9 @@ export default function Dashboard() {
         
         <motion.div variants={itemVars}>
           <StatCard
-            title="Accepted Consents"
-            value={summary?.active?.toString() || "0"}
-            meta="Healthy status"
+            title={t('dashboard.accepted_consents')}
+            value={summary?.active_consents?.toString() || "0"}
+            meta={t('dashboard.stats_meta.healthy')}
             metaType="success"
             metaIcon={<BadgeCheck size={11} />}
             icon={<ShieldCheck size={17} />}
@@ -169,9 +149,9 @@ export default function Dashboard() {
 
         <motion.div variants={itemVars}>
           <StatCard
-            title="Expiring Soon"
-            value={summary?.expiring?.toString() || "0"}
-            meta="Needs attention"
+            title={t('dashboard.expiring_soon')}
+            value={summary?.expiring_soon?.toString() || "0"}
+            meta={t('dashboard.stats_meta.attention')}
             metaType="warning"
             metaIcon={<ShieldAlert size={11} />}
             icon={<ShieldAlert size={17} />}
@@ -181,9 +161,9 @@ export default function Dashboard() {
 
         <motion.div variants={itemVars}>
           <StatCard
-            title="Pending DSR"
-            value={summary?.dsr_pending?.toString() || "0"}
-            meta="In progress"
+            title={t('dashboard.pending_dsr')}
+            value={summary?.pending_dsr?.toString() || "0"}
+            meta={t('dashboard.stats_meta.in_progress')}
             metaType="neutral"
             metaIcon={<FileText size={11} />}
             icon={<FileText size={17} />}
@@ -201,17 +181,17 @@ export default function Dashboard() {
             <div className="px-5 py-4 border-b border-[#f1f5f9] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-[#4f46e5] to-[#6366f1]" />
-                <h3 className="font-semibold text-[#0f172a] text-[15px]">Recent Activity</h3>
+                <h3 className="font-semibold text-[#0f172a] text-[15px]">{t('dashboard.recent_activity')}</h3>
               </div>
               <button className="text-xs font-semibold text-[#4f46e5] hover:text-[#4338ca] hover:underline transition-colors">
-                View All
+                {t('common.view_all')}
               </button>
             </div>
             <div className="p-4 flex flex-col gap-2 flex-1">
                 {activities.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">No recent activity detected.</p>
+                  <p className="text-sm text-gray-500 text-center py-4">{t('dashboard.no_activity')}</p>
                 )}
-                {activities.map((item) => (
+                {activities.map((item: ActivityItem) => (
                   <div
                     key={item.id}
                     className={cn(
@@ -234,7 +214,7 @@ export default function Dashboard() {
                         <p className="font-semibold text-[#0f172a] text-sm truncate pr-2 group-hover:text-[#4f46e5] transition-colors">
                           {item.title}
                         </p>
-                        <Badge variant={item.badgeVariant as 'active' | 'pending' | 'expired'} dot>{item.status}</Badge>
+                        <Badge variant={item.badgeVariant as 'active' | 'pending' | 'expired' | 'info'} dot>{item.status}</Badge>
                       </div>
                       <p className="text-xs text-[#64748b] truncate">{item.desc}</p>
                       <p className="text-[11px] text-[#94a3b8] mt-0.5">{item.time}</p>
@@ -250,41 +230,45 @@ export default function Dashboard() {
           <Card className="h-full flex flex-col overflow-hidden">
             <div className="px-5 py-4 border-b border-[#f1f5f9] flex items-center gap-2 shrink-0">
               <div className="w-1.5 h-5 rounded-full bg-gradient-to-b from-amber-400 to-orange-500" />
-              <h3 className="font-semibold text-[#0f172a] text-[15px]">Alerts</h3>
+              <h3 className="font-semibold text-[#0f172a] text-[15px]">{t('dashboard.alerts')}</h3>
+            </div>
+            
+            <div className="p-5 flex flex-col gap-4 overflow-y-auto">
               {alertsCount === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No new alerts at this time.</p>
+                <p className="text-sm text-gray-500 text-center py-4">{t('dashboard.no_alerts')}</p>
               )}
-              {expiringConsents.map((c, idx) => (
+              {expiringConsents.map((c: ExpiringConsent, idx: number) => (
                 <div key={`exp-${c.id}-${idx}`} className="relative rounded-[12px] p-4 bg-[#fffbeb] border-l-[3px] border-amber-400 overflow-hidden">
                   <div className="flex gap-3">
                     <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-semibold text-sm text-amber-900 mb-0.5">Consent Expiring Soon</h4>
+                      <h4 className="font-semibold text-sm text-amber-900 mb-0.5">{t('dashboard.consent_expiring_title')}</h4>
                       <p className="text-xs text-amber-700 mb-2 leading-relaxed">
-                        Your consent for <span className="font-semibold">{c.tenant_name || 'an application'}</span> expires soon.
+                        <Trans i18nKey="dashboard.consent_expiring_desc" values={{ tenant: c.tenant_name || t('common.unknown') }}>
+                          Your consent for <span className="font-semibold">{'{{tenant}}'}</span> expires soon.
+                        </Trans>
                       </p>
                       <button className="text-[11px] font-bold text-amber-700 hover:text-amber-900 underline underline-offset-2 hover:no-underline transition-all">
-                        Review Consent →
+                        {t('dashboard.review_consent')}
                       </button>
                     </div>
                   </div>
                 </div>
               ))}
 
-              {summary?.dsr_pending ? (
+              {summary?.pending_dsr ? (
                 <div className="relative rounded-[12px] p-4 bg-[#eff6ff] border-l-[3px] border-blue-400 overflow-hidden">
                   <div className="flex gap-3">
                     <Bell size={18} className="text-blue-500 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-semibold text-sm text-blue-900 mb-0.5">DSR In Progress</h4>
+                      <h4 className="font-semibold text-sm text-blue-900 mb-0.5">{t('dashboard.dsr_in_progress_title')}</h4>
                       <p className="text-xs text-blue-700 leading-relaxed">
-                        You have {summary.dsr_pending} active DSR request(s) being processed.
+                        {t('dashboard.dsr_in_progress_desc', { count: summary.pending_dsr })}
                       </p>
                     </div>
                   </div>
                 </div>
               ) : null}
-
             </div>
           </Card>
         </motion.div>
@@ -292,3 +276,4 @@ export default function Dashboard() {
     </motion.div>
   );
 }
+
