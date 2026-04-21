@@ -29,7 +29,7 @@ export default function TrackDSR() {
   const [page, setPage] = useState(1);
 
 
-  const { data: res, isLoading: loading, mutate } = useSWR(
+  const { data: res, isLoading: loading } = useSWR(
     ['user/dsr/requests', statusFilter, page, startDate, endDate],
     () => userApi.getDsrRequests({
       status: statusFilter || 'All',
@@ -120,7 +120,7 @@ export default function TrackDSR() {
           {requests.map((req: DsrRequest, idx: number) => {
             const isComplete = req.status === 'completed';
             const isRejected = req.status === 'rejected';
-            const isProcessing = req.status === 'processing';
+
             const isExpanded = expandedId === req.id;
 
             const timeline = Array.isArray(req.timeline) ? req.timeline : [];

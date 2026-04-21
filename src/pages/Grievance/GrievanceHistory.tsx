@@ -23,7 +23,7 @@ export default function GrievanceHistory() {
         const mapped = res.grievances.map((g: any) => {
           const isEscalated = g.status === 'ESCALATED';
           const isResolved = g.status === 'RESOLVED';
-          const isPending = g.status === 'PENDING' || g.status === 'OPEN';
+
 
           return {
             id: g.id,

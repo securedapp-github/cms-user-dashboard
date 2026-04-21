@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { useTranslation, Trans } from 'react-i18next';
 import {
-  Activity, ShieldAlert, BadgeCheck, FileClock,
+  Activity, ShieldAlert, BadgeCheck,
   ShieldCheck, FileText, XCircle, AlertCircle,
-  Bell, TrendingUp, Users
+  Bell, Users
 } from 'lucide-react';
 import { StatCard } from '../components/cards/StatCard';
 import { Card } from '../components/ui/Card';
@@ -14,15 +14,7 @@ import { userApi } from '../services/api/userApi';
 import { useAuthStore } from '../store/authStore';
 import useSWR from 'swr';
 
-interface DashboardSummary {
-  total_consents: number;
-  active_consents: number;
-  expiring_soon: number;
-  revoked: number;
-  expired: number;
-  pending_dsr: number;
-  institutions_count: number;
-}
+
 
 interface ActivityItem {
   id: string;
@@ -44,7 +36,7 @@ interface ExpiringConsent {
 export default function Dashboard() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { data: summary, mutate: mutateSummary } = useSWR('user/summary', () => userApi.getSummary());
+  const { data: summary } = useSWR('user/summary', () => userApi.getSummary());
   const { data: logsData } = useSWR('user/logs', () => userApi.getLogs(5));
   const { data: consentsData } = useSWR('user/consents', () => userApi.getConsents());
 
