@@ -9,7 +9,10 @@ export default defineConfig({
     proxy: {
       '/user': {
         target: 'http://localhost:3000',
-        //target: 'https://cmsbe.securedapp.io',
+        changeOrigin: true,
+      },
+      '/public': {
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
     },

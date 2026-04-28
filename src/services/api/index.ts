@@ -11,7 +11,9 @@ export const api = async (url: string, options: RequestInit = {}) => {
     ...(options.headers || {}),
   };
 
-  if (token) {
+  const isPublic = url.includes('/public/');
+
+  if (token && !isPublic) {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
@@ -20,7 +22,7 @@ export const api = async (url: string, options: RequestInit = {}) => {
     headers,
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && !isPublic) {
     // Unauthorized: clear token and redirect to login
     localStorage.removeItem("user_token");
     window.location.href = "/login";

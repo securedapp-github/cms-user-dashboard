@@ -13,6 +13,8 @@ import RaiseGrievance from './pages/Grievance/RaiseGrievance';
 import GrievanceHistory from './pages/Grievance/GrievanceHistory';
 import Feedback from './pages/Feedback';
 import Profile from './pages/Profile';
+import ConsentFlowDemo from './pages/PartnerDemo/ConsentFlowDemo';
+import ConsentCallback from './pages/PartnerDemo/ConsentCallback';
 
 function App() {
   const { i18n } = useTranslation();
@@ -28,6 +30,10 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        
+        {/* Partner Demo Routes for Consent */}
+        <Route path="/demo/consent" element={<ConsentFlowDemo />} />
+        <Route path="/consent/callback" element={<ConsentCallback />} />
         
         {/* Protected Routes */}
         <Route path="/" element={<AppLayout />}>
