@@ -18,4 +18,7 @@ export interface ConsentDetailsData {
   policy_version: string;
   created_at: string;
   updated_at: string;
+  provider_type?: 'self' | 'guardian';
+  guardian_name?: string;
+  guardian_email?: string;
 }

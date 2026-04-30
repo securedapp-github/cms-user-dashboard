@@ -221,6 +221,9 @@ export default function MyConsents() {
         : t(`status.${lowerStatus}`, lowerStatus.charAt(0).toUpperCase() + lowerStatus.slice(1)),
       iconBgColor: isActive ? 'bg-emerald-100' : isPending ? 'bg-amber-100' : 'bg-red-100',
       iconTextColor: isActive ? 'text-emerald-700' : isPending ? 'text-amber-700' : 'text-red-700',
+      providerType: c.provider_type || (console.warn(`[Consent] Missing provider_type for consent ${c.id}`), 'self'),
+      guardianName: c.guardian_name,
+      guardianEmail: c.guardian_email,
     };
   });
 

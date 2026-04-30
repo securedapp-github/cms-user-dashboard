@@ -55,6 +55,36 @@ export function PurposeDetailModal({
           </div>
         </div>
 
+        {/* Provided By Section */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <User size={14} className="text-[#94a3b8]" />
+            <h4 className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider">Provided By</h4>
+          </div>
+          <div className="p-3.5 rounded-xl border border-[#e2e8f0] bg-white">
+            <div className="flex items-center justify-between">
+               <span className="text-xs font-semibold text-[#334155]">
+                 {consent.provider_type === 'guardian' ? 'Guardian' : 'Self'}
+               </span>
+               {consent.provider_type === 'guardian' && (
+                 <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-[10px] font-bold uppercase rounded border border-purple-100">
+                   Authorized
+                 </span>
+               )}
+            </div>
+            {consent.provider_type === 'guardian' && (
+              <div className="mt-2 pt-2 border-t border-[#f1f5f9] space-y-1">
+                {consent.guardian_name && (
+                  <p className="text-[10px] font-bold text-[#64748b]">NAME: <span className="text-[#0f172a] ml-1">{consent.guardian_name}</span></p>
+                )}
+                {consent.guardian_email && (
+                  <p className="text-[10px] font-bold text-[#64748b]">EMAIL: <span className="text-[#0f172a] ml-1">{consent.guardian_email}</span></p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Purpose & Data Section */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-1">

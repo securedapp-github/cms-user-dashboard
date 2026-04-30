@@ -14,6 +14,9 @@ interface ConsentCardProps {
   status: 'Active' | 'Revoked' | 'Expired' | 'Expiring Soon' | 'Accepted' | 'Rejected / Withdrawn';
   iconBgColor: string;
   iconTextColor: string;
+  providerType?: 'self' | 'guardian';
+  guardianName?: string;
+  guardianEmail?: string;
   onClick: (id: string, purposeId?: string) => void;
 }
 
@@ -29,6 +32,9 @@ export function ConsentCard({
   status,
   iconBgColor,
   iconTextColor,
+  providerType,
+  guardianName,
+  guardianEmail,
   onClick
 }: ConsentCardProps) {
 
@@ -79,10 +85,16 @@ export function ConsentCard({
             {status}
           </Badge>
         </div>
-        
-        <p className="text-xs text-[#64748b] truncate mb-1.5">
-          {tenantName} · {appName}
-        </p>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <p className="text-xs text-[#64748b] truncate">
+            {tenantName} · {appName}
+          </p>
+          {providerType === 'guardian' && (
+            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[9px] font-bold uppercase tracking-wider rounded-md border border-purple-200">
+              Guardian
+            </span>
+          )}
+        </div>
         
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 text-[11px] text-[#94a3b8]">
           <span className="truncate">Purpose: {purpose}</span>
