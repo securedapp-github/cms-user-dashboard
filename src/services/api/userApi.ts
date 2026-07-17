@@ -129,7 +129,7 @@ export const userApi = {
     const params = new URLSearchParams();
     if (identity.email) params.append('email', identity.email);
     if (identity.phone_number) params.append('phone_number', identity.phone_number);
-    const base = (import.meta as any).env?.VITE_API_URL || '';
+    const base = (import.meta as any).env?.VITE_API_URL || ((import.meta as any).env?.DEV ? '' : 'https://cmsbe.securedapp.io');
     const res = await fetch(`${base}/public/apps/${appId}/policy?${params.toString()}`);
     if (!res.ok) return null;
     return res.json();
