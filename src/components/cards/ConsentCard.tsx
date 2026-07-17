@@ -90,8 +90,11 @@ export function ConsentCard({
             {tenantName} · {appName}
           </p>
           {providerType === 'guardian' && (
-            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[9px] font-bold uppercase tracking-wider rounded-md border border-purple-200">
-              Guardian
+            <span 
+              className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[9px] font-bold uppercase tracking-wider rounded-md border border-purple-200"
+              title={guardianName && guardianEmail ? `${guardianName} (${guardianEmail})` : guardianName || guardianEmail}
+            >
+              Guardian{guardianName ? `: ${guardianName}` : ''}
             </span>
           )}
         </div>
