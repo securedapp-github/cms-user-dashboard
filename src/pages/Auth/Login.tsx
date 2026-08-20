@@ -20,7 +20,12 @@ export default function Login() {
 
   const requestOtpSchema = z.object({
     email: z.string().email(t('auth.validation.email_invalid')),
-    phone_number: z.string().min(10, t('auth.validation.phone_invalid')),
+    phone_number: z.string()
+      .regex(/^\+?[0-9]+$/, t('auth.validation.phone_invalid'))
+      .refine((val) => {
+        const digits = val.replace(/\D/g, '');
+        return digits.length >= 7 && digits.length <= 15;
+      }, t('auth.validation.phone_invalid')),
   });
 
   type RequestOtpForm = z.infer<typeof requestOtpSchema>;
@@ -226,6 +231,7 @@ export default function Login() {
                     <Input
                       label={t('auth.phone')}
                       placeholder="+91 98765 43210"
+                      type="tel"
                       {...register('phone_number')}
                       error={errors.phone_number?.message}
                       disabled={isLoading}

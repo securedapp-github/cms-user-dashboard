@@ -230,15 +230,16 @@ export default function Profile() {
               </div>
               <div className="p-5">
                 <form onSubmit={handleSavePreferences}>
-                  <div className="relative">
-                    <Globe className="absolute inset-is-3 top-[34px] z-10 text-[#94a3b8]" size={15} />
-                    <Select
-                      label={t('profile.lang_pref')}
-                      className="ps-9"
-                      value={selectedLanguage}
-                      onChange={(e) => setSelectedLanguage(e.target.value)}
-                      options={LANGUAGES.map(l => ({ label: l.label, value: l.value }))}
-                    />
+                  <div className="flex items-end gap-2">
+                    <div className="flex-1">
+                      <Select
+                        label={t('profile.lang_pref')}
+                        value={selectedLanguage}
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                        options={LANGUAGES.map(l => ({ label: l.label, value: l.value }))}
+                      />
+                    </div>
+                    <Globe className="text-[#94a3b8] mb-1 shrink-0" size={18} />
                   </div>
                   <p className="text-xs text-[#94a3b8] mt-2 mb-4">
                     {t('profile.lang_hint')}

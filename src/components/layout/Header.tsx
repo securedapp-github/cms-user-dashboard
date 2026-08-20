@@ -16,9 +16,11 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const { user, logout, isAuthenticated } = useAuthStore();
   const { addToast } = useToastStore();
   const navigate = useNavigate();
-  
+
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   // Fetch top 5 logs
   const { data: logsData, isLoading: isLoadingLogs } = useSWR(
@@ -33,6 +35,9 @@ export function Header({ onMenuToggle }: HeaderProps) {
     const handleClickOutside = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -104,7 +109,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] transition-all"
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] transition-all cursor-pointer"
               aria-label={t('nav.notifications', 'Notifications')}
             >
               <Bell size={18} />
@@ -161,25 +166,61 @@ export function Header({ onMenuToggle }: HeaderProps) {
           <div className="w-px h-6 bg-[#e2e8f0] mx-1" />
 
           {/* Logout Button */}
-          <button 
+          <button
             onClick={handleLogout}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-[#64748b] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-full text-[#64748b] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-all cursor-pointer"
             title={t('nav.logout')}
           >
             <LogOut size={18} />
           </button>
 
-          {/* Avatar / User */}
-          <button className="flex items-center gap-2.5 ps-1 pe-2 py-1 rounded-full hover:bg-[#f8fafc] transition-all group">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4f46e5] to-[#6366f1] shadow-sm flex items-center justify-center shrink-0 text-white">
-              <span className="text-xs font-bold">{initials}</span>
-            </div>
-            <div className="hidden md:flex flex-col items-start text-start">
-              <span className="text-[13px] font-semibold text-[#0f172a] leading-tight truncate max-w-[120px]">{displayName}</span>
-              <span className="text-[11px] text-[#94a3b8]">{t('profile.principal', 'Principal')}</span>
-            </div>
-            <ChevronDown size={13} className="hidden md:block text-[#94a3b8] group-hover:text-[#0f172a] transition-colors" />
-          </button>
+          {/* Avatar / User Profile Dropdown */}
+          <div className="relative" ref={profileRef}>
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="flex items-center gap-2.5 ps-1 pe-2 py-1 rounded-full hover:bg-[#f8fafc] transition-all group cursor-pointer"
+              aria-label={t('nav.profile', 'Profile')}
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4f46e5] to-[#6366f1] shadow-sm flex items-center justify-center shrink-0 text-white">
+                <span className="text-xs font-bold">{initials}</span>
+              </div>
+              <div className="hidden md:flex flex-col items-start text-start">
+                <span className="text-[13px] font-semibold text-[#0f172a] leading-tight truncate max-w-[120px]">{displayName}</span>
+                <span className="text-[11px] text-[#94a3b8]">{t('profile.principal', 'Principal')}</span>
+              </div>
+              <ChevronDown size={13} className="hidden md:block text-[#94a3b8] group-hover:text-[#0f172a] transition-colors" />
+            </button>
+
+            {/* Profile Dropdown Menu */}
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] border border-[#e2e8f0] py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-4 py-2 border-b border-[#f1f5f9]">
+                  <p className="text-xs text-[#94a3b8] uppercase tracking-widest font-semibold">Account</p>
+                  <p className="text-sm font-semibold text-[#0f172a] truncate mt-1">{displayName}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    navigate('/profile');
+                  }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-[#f8fafc] transition-colors text-sm text-[#0f172a] font-medium cursor-pointer"
+                >
+                  {t('nav.view_profile', 'View Profile')}
+                </button>
+                <div className="border-t border-[#f1f5f9] mt-2 pt-2">
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-[#fef2f2] transition-colors text-sm text-[#ef4444] font-medium cursor-pointer"
+                  >
+                    {t('nav.logout', 'Logout')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
