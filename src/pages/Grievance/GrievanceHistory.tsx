@@ -81,18 +81,8 @@ export default function GrievanceHistory() {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button 
-            onClick={fetchTickets}
-            disabled={isLoading}
-            className="p-2 text-[#64748b] hover:text-[#4f46e5] hover:bg-[#f1f5f9] rounded-lg transition-all disabled:opacity-50"
-          >
-            <motion.div
-              animate={isLoading ? { rotate: 360 } : {}}
-              transition={isLoading ? { repeat: Infinity, duration: 1, ease: "linear" } : {}}
-            >
-              <Clock size={18} />
-            </motion.div>
-          </button>
+          {/* QA-034: removed the refresh clock button — it was reported as having
+              no useful action. Tickets already fetch on mount via useEffect. */}
           <Link to="/grievance" className="flex-1 sm:flex-initial">
           <Button size="sm" className="bg-[#ef4444] hover:bg-[#dc2626] text-white shadow-[0_4px_12px_rgba(239,68,68,0.25)] hover:shadow-[0_6px_18px_rgba(239,68,68,0.35)]">
             <Plus size={15} className="mr-1.5" />
