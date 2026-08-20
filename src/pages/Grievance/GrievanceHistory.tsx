@@ -120,13 +120,15 @@ export default function GrievanceHistory() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08, type: 'spring', duration: 0.45 }}
           >
-            <div 
-              onClick={() => toggleExpand(ticket.id)}
+            {/* QA-033: removed whole-card onClick + cursor-pointer.
+                Card body is no longer clickable — collapse/expand happens only
+                via the dedicated chevron button below. */}
+            <div
               className={cn(
                 "bg-white rounded-[16px] border",
                 expandedId === ticket.id ? "border-[#4f46e5] shadow-[0_8px_30px_rgba(79,70,229,0.12)]" : "border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.06)]",
                 "transition-all duration-300 overflow-hidden group relative",
-                "hover:border-[#c7d2fe] cursor-pointer"
+                "hover:border-[#c7d2fe]"
               )}
             >
               {/* Left color accent */}
@@ -178,10 +180,17 @@ export default function GrievanceHistory() {
                           <span className="text-[#94a3b8]">{t('grievance.updated_label')}: <span className="font-medium text-[#64748b]">{ticket.lastUpdate}</span></span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 text-[#4f46e5] font-semibold text-[11px] uppercase tracking-wider">
+                      {/* QA-033: dedicated expand/collapse control.
+                          Card body is no longer clickable; this button is the only trigger. */}
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(ticket.id)}
+                        aria-expanded={expandedId === ticket.id}
+                        className="flex items-center gap-1 text-[#4f46e5] font-semibold text-[11px] uppercase tracking-wider px-2 py-1 rounded-md hover:bg-[#eef2ff] transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
+                      >
                         {expandedId === ticket.id ? t('grievance.collapse') : t('grievance.view_details')}
                         {expandedId === ticket.id ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                      </div>
+                      </button>
                     </div>
                   </div>
                 </div>
