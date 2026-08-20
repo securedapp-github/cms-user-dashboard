@@ -13,6 +13,7 @@ import { cn } from '../utils/cn';
 import { userApi } from '../services/api/userApi';
 import { useAuthStore } from '../store/authStore';
 import useSWR from 'swr';
+import { useLogs } from '../hooks/useLogs';
 
 
 
@@ -37,10 +38,10 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { data: summary } = useSWR('user/summary', () => userApi.getSummary());
-  const { data: logsData } = useSWR('user/logs', () => userApi.getLogs(5));
+  const { logs } = useLogs(5);
   const { data: consentsData } = useSWR('user/consents', () => userApi.getConsents());
 
-  const activities = (logsData?.logs || []).map((log: any) => {
+  const activities = (logs || []).map((log: any) => {
     const action = log.action;
     const metadata = log.metadata || {};
     

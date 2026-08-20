@@ -2,10 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Bell, ChevronDown, LogOut } from 'lucide-react';
-import useSWR from 'swr';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
-import { userApi } from '../../services/api/userApi';
+import { useLogs } from '../../hooks/useLogs';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -23,13 +22,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const profileRef = useRef<HTMLDivElement>(null);
 
   // Fetch top 5 logs
-  const { data: logsData, isLoading: isLoadingLogs } = useSWR(
-    isAuthenticated ? 'user/logs/top5' : null,
-    () => userApi.getLogs(5),
-    { refreshInterval: 10000 }
-  );
-
-  const logs = logsData?.logs || [];
+  const { logs, isLoading: isLoadingLogs } = useLogs(5, isAuthenticated);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

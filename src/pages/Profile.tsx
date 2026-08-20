@@ -12,10 +12,7 @@ import { Select } from '../components/ui/Select';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
 import { cn } from '../utils/cn';
-import { userApi } from '../services/api/userApi';
-import { useEffect } from 'react';
-
-// Dynamically fetched logs instead of hardcoded
+import { useLogs } from '../hooks/useLogs';
 
 function ReadonlyField({
   label, value, icon, mono = false
@@ -63,27 +60,7 @@ export default function Profile() {
     }
   };
 
-  const [logs, setLogs] = useState<any[]>([]);
-  const [isLoadingLogs, setIsLoadingLogs] = useState(true);
-
-  const fetchLogs = async () => {
-    try {
-      const res = await userApi.getLogs();
-      if (res && res.logs) {
-        setLogs(res.logs);
-      }
-    } catch (err) {
-      console.error('Failed to fetch logs:', err);
-    } finally {
-      setIsLoadingLogs(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLogs();
-    const interval = setInterval(fetchLogs, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  const { logs, isLoading: isLoadingLogs } = useLogs();
 
   const formatLogTitle = (action: string) => {
     return t(`logs.${action}`, action.replace(/_/g, ' '));
