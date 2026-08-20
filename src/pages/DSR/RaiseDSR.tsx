@@ -42,6 +42,7 @@ export default function RaiseDSR() {
 
   const [tenants, setTenants] = useState<any[]>([]);
   const [apps, setApps] = useState<any[]>([]);
+  const [isLoadingApps, setIsLoadingApps] = useState(false);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<DsrForm>({
     resolver: zodResolver(dsrSchema)
@@ -64,13 +65,26 @@ export default function RaiseDSR() {
 
   useEffect(() => {
     if (selectedTenantId) {
-      userApi.getApps(selectedTenantId).then(res => {
-        if (res && res.apps) setApps(res.apps);
-      }).catch(console.error);
+      setIsLoadingApps(true);
+      userApi.getApps(selectedTenantId)
+        .then(res => {
+          if (res && res.apps) {
+            setApps(res.apps);
+          } else {
+            setApps([]);
+            addToast(t('dsr.form.no_apps_error'), 'warning');
+          }
+        })
+        .catch(err => {
+          setApps([]);
+          addToast(err.message || t('dsr.form.apps_fetch_error'), 'error');
+        })
+        .finally(() => setIsLoadingApps(false));
     } else {
       setApps([]);
+      setIsLoadingApps(false);
     }
-  }, [selectedTenantId]);
+  }, [selectedTenantId, addToast, t]);
 
   const onSubmit = async (data: DsrForm) => {
     setIsSubmitting(true);
@@ -150,9 +164,11 @@ export default function RaiseDSR() {
                 <select
                   {...register('app_id')}
                   className={inputClass(!!errors.app_id)}
-                  disabled={!selectedTenantId || apps.length === 0}
+                  disabled={!selectedTenantId || isLoadingApps}
                 >
-                  <option value="">{t('dsr.form.app_placeholder')}</option>
+                  <option value="">
+                    {isLoadingApps ? t('common.loading', 'Loading...') : t('dsr.form.app_placeholder')}
+                  </option>
                   {apps.map(a => (
                     <option key={a.id} value={a.id}>
                       {a.name} {a.slug ? `[${a.slug}]` : ''}
