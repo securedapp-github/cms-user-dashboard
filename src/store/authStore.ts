@@ -5,6 +5,8 @@ export interface User {
   principal_id: string;
   email: string;
   phone_number: string;
+  // QA-037: account creation timestamp exposed by /user/me (BE adds it).
+  created_at?: string;
 }
 
 interface SignupData {

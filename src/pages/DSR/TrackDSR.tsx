@@ -8,6 +8,9 @@ import { userApi } from '../../services/api/userApi';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button';
 import useSWR from 'swr';
+import { useAuthStore } from '../../store/authStore';
+import { useToastStore } from '../../store/toastStore';
+import { DatePicker } from '../../components/ui/DatePicker';
 
 interface DsrRequest {
   id: string;
@@ -22,11 +25,23 @@ interface DsrRequest {
 
 export default function TrackDSR() {
   const { t } = useTranslation();
+  const { user } = useAuthStore();
+  const { addToast } = useToastStore();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [page, setPage] = useState(1);
+
+  // QA-037: lower bound = account (Principal) creation date, upper bound = today (dynamic).
+  // If user.created_at is unknown (BE not restarted, stale store, or missing
+  // JWT claim), default the lower bound to TODAY so the picker only allows
+  // today — never silently widening to a 1-year window. This prevents the
+  // bug where pre-restart state lets users see 2025 logs.
+  const todayStr = new Date().toISOString().split('T')[0];
+  const accountCreatedAtStr = user?.created_at
+    ? new Date(user.created_at).toISOString().split('T')[0]
+    : todayStr;
 
 
   const { data: res, isLoading: loading } = useSWR(
@@ -87,20 +102,30 @@ export default function TrackDSR() {
           >
             {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
-          <div className="flex w-full sm:w-auto items-center gap-2">
-            <span className="text-sm text-[#64748b] whitespace-nowrap"><Calendar size={14} className="inline mr-1" />{t('common.date', 'Date')}:</span>
-            <input 
-              type="date" 
-              value={startDate} 
-              onChange={(e) => { setStartDate(e.target.value); setPage(1); }} 
-              className={inputClass} 
+          <div className="flex w-full sm:w-auto items-end gap-2">
+            <Calendar size={14} className="text-[#94a3b8] shrink-0 mb-3" />
+            <DatePicker
+              label="From"
+              value={startDate}
+              onChange={(v) => { setStartDate(v); setPage(1); }}
+              minDate={accountCreatedAtStr}
+              maxDate={todayStr}
+              onOutOfRange={(kind) => {
+                if (kind === 'min') addToast('Start date cannot be before your account creation date.', 'error');
+                else addToast('Start date cannot be in the future.', 'error');
+              }}
             />
-            <span className="text-sm text-[#64748b]">—</span>
-            <input 
-              type="date" 
-              value={endDate} 
-              onChange={(e) => { setEndDate(e.target.value); setPage(1); }} 
-              className={inputClass} 
+            <span className="text-sm text-[#64748b] mb-3">—</span>
+            <DatePicker
+              label="To"
+              value={endDate}
+              onChange={(v) => { setEndDate(v); setPage(1); }}
+              minDate={accountCreatedAtStr}
+              maxDate={todayStr}
+              onOutOfRange={(kind) => {
+                if (kind === 'min') addToast('End date cannot be before your account creation date.', 'error');
+                else addToast('End date cannot be in the future.', 'error');
+              }}
             />
           </div>
         </div>
