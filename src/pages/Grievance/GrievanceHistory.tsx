@@ -13,10 +13,8 @@ export default function GrievanceHistory() {
   const { t } = useTranslation();
   const [tickets, setTickets] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const fetchTickets = async () => {
-    setIsLoading(true);
     try {
       const res = await userApi.getGrievances();
       if (res && res.grievances) {
@@ -47,8 +45,6 @@ export default function GrievanceHistory() {
       }
     } catch (err) {
       console.error("Failed to fetch grievances:", err);
-    } finally {
-      setIsLoading(false);
     }
   };
 

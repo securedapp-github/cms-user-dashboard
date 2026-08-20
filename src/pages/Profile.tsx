@@ -12,6 +12,7 @@ import { Select } from '../components/ui/Select';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
 import { cn } from '../utils/cn';
+import { userApi } from '../services/api/userApi';
 import { useLogs } from '../hooks/useLogs';
 
 function ReadonlyField({
@@ -66,7 +67,7 @@ export default function Profile() {
     return t(`logs.${action}`, action.replace(/_/g, ' '));
   };
 
-  const formatLogDesc = (log: any) => {
+  const formatLogDesc = (log: { action: string; metadata?: Record<string, any>; created_at?: string }) => {
     const action = log.action;
     const metadata = log.metadata || {};
 
@@ -96,7 +97,7 @@ export default function Profile() {
     const headers = [t('common.date'), t('common.action'), t('common.description')];
     const csvContent = [
       headers.join(','),
-      ...logs.map(log =>
+      ...logs.map((log: { action: string; created_at: string; metadata?: Record<string, any> }) =>
         `"${new Date(log.created_at).toLocaleString()}","${formatLogTitle(log.action)}","${formatLogDesc(log).replace(/"/g, '""')}"`
       )
     ].join('\n');
@@ -288,7 +289,7 @@ export default function Profile() {
                       <p className="text-xs text-[#94a3b8] mt-1">{t('profile.no_logs_desc')}</p>
                     </div>
                   ) : (
-                    logs.map((log, i) => {
+                    logs.map((log: { action: string; created_at: string; metadata?: Record<string, any>; id: string }, i: number) => {
                       const isSuccess = log.action === 'USER_LOGIN';
                       return (
                         <motion.div

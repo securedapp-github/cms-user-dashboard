@@ -55,12 +55,9 @@ export default function MyConsents() {
   const [apps, setApps] = useState<{ label: string; value: string }[]>([
     { label: t('consents.filters.platform'), value: 'all' }
   ]);
-  const [isLoadingTenants, setIsLoadingTenants] = useState(true);
-  const [isLoadingApps, setIsLoadingApps] = useState(false);
 
   // Load Tenants on Mount
   useEffect(() => {
-    setIsLoadingTenants(true);
     userApi.getTenants()
       .then(res => {
         if (res && res.tenants && res.tenants.length > 0) {
@@ -72,8 +69,7 @@ export default function MyConsents() {
       })
       .catch(err => {
         addToast(err.message || t('consents.tenants_fetch_error'), 'error');
-      })
-      .finally(() => setIsLoadingTenants(false));
+      });
   }, [t, addToast]);
 
   // Load Apps when Tenant changes
@@ -81,9 +77,7 @@ export default function MyConsents() {
     if (filterTenant === 'all') {
       setApps([{ label: t('consents.filters.platform'), value: 'all' }]);
       setFilterApp('all');
-      setIsLoadingApps(false);
     } else {
-      setIsLoadingApps(true);
       userApi.getApps(filterTenant)
         .then(res => {
           if (res && res.apps && res.apps.length > 0) {
@@ -97,8 +91,7 @@ export default function MyConsents() {
         .catch(err => {
           setApps([{ label: t('consents.filters.platform'), value: 'all' }]);
           addToast(err.message || t('consents.apps_fetch_error'), 'error');
-        })
-        .finally(() => setIsLoadingApps(false));
+        });
     }
   }, [filterTenant, t, addToast]);
 
