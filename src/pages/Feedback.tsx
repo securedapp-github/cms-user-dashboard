@@ -156,11 +156,13 @@ export default function Feedback() {
                   className="w-full px-6 py-4 text-sm rounded-2xl border border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 transition-all outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 focus:bg-white resize-none"
                   placeholder={t('feedback.placeholders.comments')}
                 />
-                <div className="flex justify-between items-center px-1">
-                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('common.loading')}</span>
-                   <span className={`text-[11px] font-bold ${comment.length > 450 ? 'text-amber-500' : 'text-slate-400'}`}>
-                     {comment.length} / 500
-                   </span>
+                {/* QA-031: removed stray {t('common.loading')} literal that was rendered
+                    unconditionally below the comment textarea. Kept the character counter,
+                    right-aligned via justify-end. */}
+                <div className="flex justify-end items-center px-1">
+                  <span className={`text-[11px] font-bold ${comment.length > 450 ? 'text-amber-500' : 'text-slate-400'}`}>
+                    {comment.length} / 500
+                  </span>
                 </div>
               </div>
 

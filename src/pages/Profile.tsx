@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
+import {
   UserCircle, Settings, ShieldCheck, Download,
   Mail, Phone, Globe, Lock
 } from 'lucide-react';
@@ -42,12 +42,19 @@ export default function Profile() {
   const { addToast } = useToastStore();
   const [isSaving, setIsSaving] = useState(false);
 
+  // QA-029: track the user's pending language change so Save can be disabled
+  // when the form is pristine (no edits made).
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+  const isPristine = selectedLanguage === i18n.language;
+
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isPristine || isSaving) return;
     setIsSaving(true);
     try {
-      await userApi.updateSettings({ preferred_language: i18n.language });
-      setLanguage(i18n.language);
+      await userApi.updateSettings({ preferred_language: selectedLanguage });
+      await i18n.changeLanguage(selectedLanguage);
+      setLanguage(selectedLanguage);
       addToast(t('profile.save_success'), 'success');
     } catch (err: any) {
       addToast(err.message || t('common.error'), 'error');
@@ -85,7 +92,7 @@ export default function Profile() {
   const formatLogDesc = (log: any) => {
     const action = log.action;
     const metadata = log.metadata || {};
-    
+
     switch(action) {
       case 'USER_LOGIN':
         return t('logs.desc.USER_LOGIN', { method: metadata.method?.toUpperCase() || 'Portal' });
@@ -112,11 +119,11 @@ export default function Profile() {
     const headers = [t('common.date'), t('common.action'), t('common.description')];
     const csvContent = [
       headers.join(','),
-      ...logs.map(log => 
+      ...logs.map(log =>
         `"${new Date(log.created_at).toLocaleString()}","${formatLogTitle(log.action)}","${formatLogDesc(log).replace(/"/g, '""')}"`
       )
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -140,14 +147,14 @@ export default function Profile() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        
+
         {/* Left column */}
         <div className="lg:col-span-1 space-y-5">
 
           {/* Avatar card */}
-          <motion.div 
-            initial={{ opacity: 0, y: 16 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
             className="hover:translate-y-[-4px] transition-transform duration-300"
           >
@@ -228,17 +235,30 @@ export default function Profile() {
                     <Select
                       label={t('profile.lang_pref')}
                       className="ps-9"
-                      value={i18n.language}
-                      onChange={(e) => i18n.changeLanguage(e.target.value)}
+                      value={selectedLanguage}
+                      onChange={(e) => setSelectedLanguage(e.target.value)}
                       options={LANGUAGES.map(l => ({ label: l.label, value: l.value }))}
                     />
                   </div>
                   <p className="text-xs text-[#94a3b8] mt-2 mb-4">
                     {t('profile.lang_hint')}
                   </p>
-                  <Button type="submit" isLoading={isSaving} className="w-full" size="md">
+                  {/* QA-029: Save button is disabled when no changes have been made,
+                      or while a save is in flight. A hint nudges the user. */}
+                  <Button
+                    type="submit"
+                    isLoading={isSaving}
+                    disabled={isPristine || isSaving}
+                    className="w-full"
+                    size="md"
+                  >
                     {t('profile.save')}
                   </Button>
+                  {isPristine && (
+                    <p className="text-xs text-[#94a3b8] mt-2 text-center">
+                      No changes to save
+                    </p>
+                  )}
                 </form>
               </div>
             </Card>
