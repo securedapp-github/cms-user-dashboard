@@ -44,6 +44,7 @@ export const useAuthStore = create<AuthState>()(
       setCredentials: (email, phone_number) => set({ email, phone_number }),
       setSignupData: (data) => set({ signupData: data }),
       logout: () => {
+        localStorage.removeItem('user_token');
         set({ isAuthenticated: false, user: null, email: null, phone_number: null, signupData: null });
         localStorage.removeItem('secure-cms-auth');
         sessionStorage.removeItem('lang_initialized');
