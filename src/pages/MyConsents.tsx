@@ -55,31 +55,52 @@ export default function MyConsents() {
   const [apps, setApps] = useState<{ label: string; value: string }[]>([
     { label: t('consents.filters.platform'), value: 'all' }
   ]);
+  const [isLoadingTenants, setIsLoadingTenants] = useState(true);
+  const [isLoadingApps, setIsLoadingApps] = useState(false);
 
   // Load Tenants on Mount
   useEffect(() => {
-    userApi.getTenants().then(res => {
-      if (res && res.tenants) {
-        const tenantOpts = res.tenants.map((t: any) => ({ label: t.name, value: t.id }));
-        setTenants([{ label: t('consents.filters.tenant'), value: 'all' }, ...tenantOpts]);
-      }
-    }).catch(console.error);
-  }, [t]);
+    setIsLoadingTenants(true);
+    userApi.getTenants()
+      .then(res => {
+        if (res && res.tenants && res.tenants.length > 0) {
+          const tenantOpts = res.tenants.map((t: any) => ({ label: t.name, value: t.id }));
+          setTenants([{ label: t('consents.filters.tenant'), value: 'all' }, ...tenantOpts]);
+        } else {
+          addToast(t('consents.no_tenants_available'), 'warning');
+        }
+      })
+      .catch(err => {
+        addToast(err.message || t('consents.tenants_fetch_error'), 'error');
+      })
+      .finally(() => setIsLoadingTenants(false));
+  }, [t, addToast]);
 
   // Load Apps when Tenant changes
   useEffect(() => {
     if (filterTenant === 'all') {
       setApps([{ label: t('consents.filters.platform'), value: 'all' }]);
       setFilterApp('all');
+      setIsLoadingApps(false);
     } else {
-      userApi.getApps(filterTenant).then(res => {
-        if (res && res.apps) {
-          const appOpts = res.apps.map((a: any) => ({ label: a.name, value: a.id }));
-          setApps([{ label: t('consents.filters.platform'), value: 'all' }, ...appOpts]);
-        }
-      }).catch(console.error);
+      setIsLoadingApps(true);
+      userApi.getApps(filterTenant)
+        .then(res => {
+          if (res && res.apps && res.apps.length > 0) {
+            const appOpts = res.apps.map((a: any) => ({ label: a.name, value: a.id }));
+            setApps([{ label: t('consents.filters.platform'), value: 'all' }, ...appOpts]);
+          } else {
+            setApps([{ label: t('consents.filters.platform'), value: 'all' }]);
+            addToast(t('consents.no_apps_available'), 'warning');
+          }
+        })
+        .catch(err => {
+          setApps([{ label: t('consents.filters.platform'), value: 'all' }]);
+          addToast(err.message || t('consents.apps_fetch_error'), 'error');
+        })
+        .finally(() => setIsLoadingApps(false));
     }
-  }, [filterTenant, t]);
+  }, [filterTenant, t, addToast]);
 
   const fetchConsents = async () => {
     try {
@@ -119,9 +140,15 @@ export default function MyConsents() {
         startDate,
         endDate,
       });
-      if (res && res.consents) setConsents(res.consents);
-    } catch (err) {
-      console.error(err);
+      if (res && res.consents) {
+        setConsents(res.consents);
+      } else {
+        setConsents([]);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch consents:', err);
+      addToast(err.message || t('consents.fetch_error'), 'error');
+      setConsents([]);
     }
   };
 
