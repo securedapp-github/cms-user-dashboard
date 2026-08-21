@@ -29,8 +29,11 @@ export function AppLayout() {
 
       try {
         // Fetch user and settings in parallel
+        // QA-037: always fetch /user/me so newly-added fields (e.g. created_at)
+        // land in the auth store even when the user is already authenticated
+        // from a persisted session.
         const [meRes, settingsRes] = await Promise.all([
-          !isAuthenticated ? userApi.getUser() : Promise.resolve(null),
+          userApi.getUser(),
           userApi.getSettings()
         ]);
 

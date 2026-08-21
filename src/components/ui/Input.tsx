@@ -8,8 +8,20 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, label, hint, id, ...props }, ref) => {
+  ({ className, error, label, hint, id, type, onInput, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+
+    const handlePhoneInput: React.FormEventHandler<HTMLInputElement> = (e) => {
+      const input = e.currentTarget;
+      const value = input.value;
+      const filtered = value.replace(/[^0-9+]/g, '');
+      if (value !== filtered) {
+        input.value = filtered;
+      }
+    };
+
+    const isPhoneField = type === 'tel';
+
     return (
       <div className="w-full flex flex-col gap-1">
         {label && (
@@ -20,6 +32,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           id={inputId}
           ref={ref}
+          type={type}
+          inputMode={isPhoneField ? 'numeric' : undefined}
           className={cn(
             "w-full px-4 py-2.5 text-sm rounded-[10px]",
             "border border-[#e2e8f0] bg-[#f9fafb] text-[#0f172a]",
@@ -32,6 +46,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             "disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[#f8fafc]",
             className
           )}
+          onInput={isPhoneField ? handlePhoneInput : (onInput as React.FormEventHandler<HTMLInputElement> | undefined)}
           {...props}
         />
         {hint && !error && (

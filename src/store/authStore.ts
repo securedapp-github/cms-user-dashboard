@@ -5,6 +5,8 @@ export interface User {
   principal_id: string;
   email: string;
   phone_number: string;
+  // QA-037: account creation timestamp exposed by /user/me (BE adds it).
+  created_at?: string;
 }
 
 interface SignupData {
@@ -42,6 +44,7 @@ export const useAuthStore = create<AuthState>()(
       setCredentials: (email, phone_number) => set({ email, phone_number }),
       setSignupData: (data) => set({ signupData: data }),
       logout: () => {
+        localStorage.removeItem('user_token');
         set({ isAuthenticated: false, user: null, email: null, phone_number: null, signupData: null });
         localStorage.removeItem('secure-cms-auth');
         sessionStorage.removeItem('lang_initialized');

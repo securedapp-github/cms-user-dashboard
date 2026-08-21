@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
+import {
   UserCircle, Settings, ShieldCheck, Download,
   Mail, Phone, Globe, Lock
 } from 'lucide-react';
@@ -13,9 +13,7 @@ import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
 import { cn } from '../utils/cn';
 import { userApi } from '../services/api/userApi';
-import { useEffect } from 'react';
-
-// Dynamically fetched logs instead of hardcoded
+import { useLogs } from '../hooks/useLogs';
 
 function ReadonlyField({
   label, value, icon, mono = false
@@ -42,12 +40,19 @@ export default function Profile() {
   const { addToast } = useToastStore();
   const [isSaving, setIsSaving] = useState(false);
 
+  // QA-029: track the user's pending language change so Save can be disabled
+  // when the form is pristine (no edits made).
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+  const isPristine = selectedLanguage === i18n.language;
+
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isPristine || isSaving) return;
     setIsSaving(true);
     try {
-      await userApi.updateSettings({ preferred_language: i18n.language });
-      setLanguage(i18n.language);
+      await userApi.updateSettings({ preferred_language: selectedLanguage });
+      await i18n.changeLanguage(selectedLanguage);
+      setLanguage(selectedLanguage);
       addToast(t('profile.save_success'), 'success');
     } catch (err: any) {
       addToast(err.message || t('common.error'), 'error');
@@ -56,36 +61,16 @@ export default function Profile() {
     }
   };
 
-  const [logs, setLogs] = useState<any[]>([]);
-  const [isLoadingLogs, setIsLoadingLogs] = useState(true);
-
-  const fetchLogs = async () => {
-    try {
-      const res = await userApi.getLogs();
-      if (res && res.logs) {
-        setLogs(res.logs);
-      }
-    } catch (err) {
-      console.error('Failed to fetch logs:', err);
-    } finally {
-      setIsLoadingLogs(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLogs();
-    const interval = setInterval(fetchLogs, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  const { logs, isLoading: isLoadingLogs } = useLogs();
 
   const formatLogTitle = (action: string) => {
     return t(`logs.${action}`, action.replace(/_/g, ' '));
   };
 
-  const formatLogDesc = (log: any) => {
+  const formatLogDesc = (log: { action: string; metadata?: Record<string, any>; created_at?: string }) => {
     const action = log.action;
     const metadata = log.metadata || {};
-    
+
     switch(action) {
       case 'USER_LOGIN':
         return t('logs.desc.USER_LOGIN', { method: metadata.method?.toUpperCase() || 'Portal' });
@@ -112,11 +97,11 @@ export default function Profile() {
     const headers = [t('common.date'), t('common.action'), t('common.description')];
     const csvContent = [
       headers.join(','),
-      ...logs.map(log => 
+      ...logs.map((log: { action: string; created_at: string; metadata?: Record<string, any> }) =>
         `"${new Date(log.created_at).toLocaleString()}","${formatLogTitle(log.action)}","${formatLogDesc(log).replace(/"/g, '""')}"`
       )
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -140,14 +125,14 @@ export default function Profile() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        
+
         {/* Left column */}
         <div className="lg:col-span-1 space-y-5">
 
           {/* Avatar card */}
-          <motion.div 
-            initial={{ opacity: 0, y: 16 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35 }}
             className="hover:translate-y-[-4px] transition-transform duration-300"
           >
@@ -223,22 +208,36 @@ export default function Profile() {
               </div>
               <div className="p-5">
                 <form onSubmit={handleSavePreferences}>
-                  <div className="relative">
-                    <Globe className="absolute inset-is-3 top-[34px] z-10 text-[#94a3b8]" size={15} />
-                    <Select
-                      label={t('profile.lang_pref')}
-                      className="ps-9"
-                      value={i18n.language}
-                      onChange={(e) => i18n.changeLanguage(e.target.value)}
-                      options={LANGUAGES.map(l => ({ label: l.label, value: l.value }))}
-                    />
+                  <div className="flex items-end gap-2">
+                    <div className="flex-1">
+                      <Select
+                        label={t('profile.lang_pref')}
+                        value={selectedLanguage}
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                        options={LANGUAGES.map(l => ({ label: l.label, value: l.value }))}
+                      />
+                    </div>
+                    <Globe className="text-[#94a3b8] mb-1 shrink-0" size={18} />
                   </div>
                   <p className="text-xs text-[#94a3b8] mt-2 mb-4">
                     {t('profile.lang_hint')}
                   </p>
-                  <Button type="submit" isLoading={isSaving} className="w-full" size="md">
+                  {/* QA-029: Save button is disabled when no changes have been made,
+                      or while a save is in flight. A hint nudges the user. */}
+                  <Button
+                    type="submit"
+                    isLoading={isSaving}
+                    disabled={isPristine || isSaving}
+                    className="w-full"
+                    size="md"
+                  >
                     {t('profile.save')}
                   </Button>
+                  {isPristine && (
+                    <p className="text-xs text-[#94a3b8] mt-2 text-center">
+                      No changes to save
+                    </p>
+                  )}
                 </form>
               </div>
             </Card>
@@ -290,7 +289,7 @@ export default function Profile() {
                       <p className="text-xs text-[#94a3b8] mt-1">{t('profile.no_logs_desc')}</p>
                     </div>
                   ) : (
-                    logs.map((log, i) => {
+                    logs.map((log: { action: string; created_at: string; metadata?: Record<string, any>; id: string }, i: number) => {
                       const isSuccess = log.action === 'USER_LOGIN';
                       return (
                         <motion.div

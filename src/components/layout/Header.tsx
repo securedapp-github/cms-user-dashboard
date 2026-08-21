@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Bell, ChevronDown, LogOut } from 'lucide-react';
-import useSWR from 'swr';
+import { Menu, Bell, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
-import { userApi } from '../../services/api/userApi';
+import { useLogs } from '../../hooks/useLogs';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -16,18 +15,12 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const { user, logout, isAuthenticated } = useAuthStore();
   const { addToast } = useToastStore();
   const navigate = useNavigate();
-  
+
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
   // Fetch top 5 logs
-  const { data: logsData, isLoading: isLoadingLogs } = useSWR(
-    isAuthenticated ? 'user/logs/top5' : null,
-    () => userApi.getLogs(5),
-    { refreshInterval: 10000 }
-  );
-
-  const logs = logsData?.logs || [];
+  const { logs, isLoading: isLoadingLogs } = useLogs(5, isAuthenticated);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -104,7 +97,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="relative w-9 h-9 flex items-center justify-center rounded-full text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] transition-all"
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9] transition-all cursor-pointer"
               aria-label={t('nav.notifications', 'Notifications')}
             >
               <Bell size={18} />
@@ -161,16 +154,16 @@ export function Header({ onMenuToggle }: HeaderProps) {
           <div className="w-px h-6 bg-[#e2e8f0] mx-1" />
 
           {/* Logout Button */}
-          <button 
+          <button
             onClick={handleLogout}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-[#64748b] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-full text-[#64748b] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-all cursor-pointer"
             title={t('nav.logout')}
           >
             <LogOut size={18} />
           </button>
 
-          {/* Avatar / User */}
-          <button className="flex items-center gap-2.5 ps-1 pe-2 py-1 rounded-full hover:bg-[#f8fafc] transition-all group">
+          {/* Avatar / User Profile */}
+          <div className="flex items-center gap-2.5 ps-1 pe-2 py-1 rounded-full">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#4f46e5] to-[#6366f1] shadow-sm flex items-center justify-center shrink-0 text-white">
               <span className="text-xs font-bold">{initials}</span>
             </div>
@@ -178,8 +171,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
               <span className="text-[13px] font-semibold text-[#0f172a] leading-tight truncate max-w-[120px]">{displayName}</span>
               <span className="text-[11px] text-[#94a3b8]">{t('profile.principal', 'Principal')}</span>
             </div>
-            <ChevronDown size={13} className="hidden md:block text-[#94a3b8] group-hover:text-[#0f172a] transition-colors" />
-          </button>
+          </div>
         </div>
       </div>
     </header>

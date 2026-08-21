@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Select } from '../components/ui/Select';
+import { DatePicker } from '../components/ui/DatePicker';
 import { ConsentCard } from '../components/cards/ConsentCard';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -10,16 +11,26 @@ import { Modal } from '../components/ui/Modal';
 import { PurposeDetailModal } from '../components/modals/PurposeDetailModal';
 import { userApi } from '../services/api/userApi';
 import { useToastStore } from '../store/toastStore';
+import { useAuthStore } from '../store/authStore';
 import type { Purpose, ConsentDetailsData } from '../types/consent';
 
 export default function MyConsents() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuthStore();
   const [filterTenant, setFilterTenant] = useState('all');
   const [filterApp, setFilterApp] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [customDates, setCustomDates] = useState({ start: '', end: '' });
   const { addToast } = useToastStore();
+
+  // QA-039: same fix as QA-037 / cms_front QA-020 — Year/Month/Day dropdown picker
+  // clamped to [accountCreatedAt, today]. Safe fallback: if user.created_at is
+  // unknown, default min to today so the picker never silently widens.
+  const todayStr = new Date().toISOString().split('T')[0];
+  const accountCreatedAtStr = user?.created_at
+    ? new Date(user.created_at).toISOString().split('T')[0]
+    : todayStr;
   
   // Modal State
   const [selectedPurpose, setSelectedPurpose] = useState<Purpose | null>(null);
@@ -47,13 +58,19 @@ export default function MyConsents() {
 
   // Load Tenants on Mount
   useEffect(() => {
-    userApi.getTenants().then(res => {
-      if (res && res.tenants) {
-        const tenantOpts = res.tenants.map((t: any) => ({ label: t.name, value: t.id }));
-        setTenants([{ label: t('consents.filters.tenant'), value: 'all' }, ...tenantOpts]);
-      }
-    }).catch(console.error);
-  }, [t]);
+    userApi.getTenants()
+      .then(res => {
+        if (res && res.tenants && res.tenants.length > 0) {
+          const tenantOpts = res.tenants.map((t: any) => ({ label: t.name, value: t.id }));
+          setTenants([{ label: t('consents.filters.tenant'), value: 'all' }, ...tenantOpts]);
+        } else {
+          addToast(t('consents.no_tenants_available'), 'warning');
+        }
+      })
+      .catch(err => {
+        addToast(err.message || t('consents.tenants_fetch_error'), 'error');
+      });
+  }, [t, addToast]);
 
   // Load Apps when Tenant changes
   useEffect(() => {
@@ -61,14 +78,22 @@ export default function MyConsents() {
       setApps([{ label: t('consents.filters.platform'), value: 'all' }]);
       setFilterApp('all');
     } else {
-      userApi.getApps(filterTenant).then(res => {
-        if (res && res.apps) {
-          const appOpts = res.apps.map((a: any) => ({ label: a.name, value: a.id }));
-          setApps([{ label: t('consents.filters.platform'), value: 'all' }, ...appOpts]);
-        }
-      }).catch(console.error);
+      userApi.getApps(filterTenant)
+        .then(res => {
+          if (res && res.apps && res.apps.length > 0) {
+            const appOpts = res.apps.map((a: any) => ({ label: a.name, value: a.id }));
+            setApps([{ label: t('consents.filters.platform'), value: 'all' }, ...appOpts]);
+          } else {
+            setApps([{ label: t('consents.filters.platform'), value: 'all' }]);
+            addToast(t('consents.no_apps_available'), 'warning');
+          }
+        })
+        .catch(err => {
+          setApps([{ label: t('consents.filters.platform'), value: 'all' }]);
+          addToast(err.message || t('consents.apps_fetch_error'), 'error');
+        });
     }
-  }, [filterTenant, t]);
+  }, [filterTenant, t, addToast]);
 
   const fetchConsents = async () => {
     try {
@@ -108,9 +133,15 @@ export default function MyConsents() {
         startDate,
         endDate,
       });
-      if (res && res.consents) setConsents(res.consents);
-    } catch (err) {
-      console.error(err);
+      if (res && res.consents) {
+        setConsents(res.consents);
+      } else {
+        setConsents([]);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch consents:', err);
+      addToast(err.message || t('consents.fetch_error'), 'error');
+      setConsents([]);
     }
   };
 
@@ -294,27 +325,34 @@ export default function MyConsents() {
           </div>
 
           {filterPeriod === 'custom' && (
-            <motion.div 
+            <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-[#f1f5f9]"
+              className="mt-4 pt-4 border-t border-[#f1f5f9]"
             >
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider ml-1">{t('consents.filters.start_date')}</label>
-                <input 
-                  type="date"
+              <div className="flex flex-col sm:flex-row gap-3">
+                <DatePicker
+                  label={t('consents.filters.start_date', 'Start date')}
                   value={customDates.start}
-                  onChange={(e) => setCustomDates(d => ({ ...d, start: e.target.value }))}
-                  className="w-full px-4 py-2 text-sm rounded-xl border border-[#e2e8f0] bg-[#f9fafb] focus:outline-none focus:border-[#4f46e5] focus:bg-white transition-all"
+                  onChange={(v) => setCustomDates(d => ({ ...d, start: v }))}
+                  minDate={accountCreatedAtStr}
+                  maxDate={todayStr}
+                  onOutOfRange={(kind) => {
+                    if (kind === 'min') addToast('Start date cannot be before your account creation date.', 'error');
+                    else addToast('Start date cannot be in the future.', 'error');
+                  }}
                 />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider ml-1">{t('consents.filters.end_date')}</label>
-                <input 
-                  type="date"
+                <span className="text-sm text-[#64748b] self-center">—</span>
+                <DatePicker
+                  label={t('consents.filters.end_date', 'End date')}
                   value={customDates.end}
-                  onChange={(e) => setCustomDates(d => ({ ...d, end: e.target.value }))}
-                  className="w-full px-4 py-2 text-sm rounded-xl border border-[#e2e8f0] bg-[#f9fafb] focus:outline-none focus:border-[#4f46e5] focus:bg-white transition-all"
+                  onChange={(v) => setCustomDates(d => ({ ...d, end: v }))}
+                  minDate={accountCreatedAtStr}
+                  maxDate={todayStr}
+                  onOutOfRange={(kind) => {
+                    if (kind === 'min') addToast('End date cannot be before your account creation date.', 'error');
+                    else addToast('End date cannot be in the future.', 'error');
+                  }}
                 />
               </div>
             </motion.div>

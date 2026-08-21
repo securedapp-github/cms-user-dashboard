@@ -19,7 +19,12 @@ export default function Signup() {
     firstName: z.string().min(2, t('auth.validation.first_name_min')),
     lastName: z.string().min(1, t('auth.validation.last_name_min')),
     email: z.string().email(t('auth.validation.email_invalid')),
-    phone: z.string().min(10, t('auth.validation.phone_invalid')).max(15, t('auth.validation.phone_too_long')),
+    phone: z.string()
+      .regex(/^\+?[0-9]+$/, t('auth.validation.phone_invalid'))
+      .refine((val) => {
+        const digits = val.replace(/\D/g, '');
+        return digits.length >= 7 && digits.length <= 15;
+      }, t('auth.validation.phone_invalid')),
   });
 
   type SignupForm = z.infer<typeof signupSchema>;
@@ -134,6 +139,7 @@ export default function Signup() {
               <Input
                 label={t('auth.phone')}
                 placeholder="9876543210"
+                type="tel"
                 {...register('phone')}
                 error={errors.phone?.message}
                 disabled={isLoading}
